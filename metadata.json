@@ -1,0 +1,6 @@
+{
+  "name": "Quinde Control · Urbanización El Condado",
+  "description": "Quinde Control · Cada caso bajo control. Sistema interno de gestión y seguimiento para la Urbanización El Condado v4.0.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,35 @@
+:root {
+  /* Paleta Verde Esmeralda Quinde Control (v4.0) */
+  --color-primario: #11321d;        /* Verde Oscuro Elegante */
+  --color-primario-hover: #1b4b2c;
+  --color-secundario: #2a8c4b;      /* Verde Esmeralda */
+  --color-secundario-claro: #a3e4b0;
+  --color-acento-oscuro: #0f172a;   /* Azul/Gris Noche para paneles */
+
+  /* Fondos y Superficies */
+  --color-fondo: #f8fafc;
+  --color-superficie: #ffffff;
+  --color-tarjeta: #ffffff;
+  --color-borde: #e2e8f0;
+
+  /* Textos y Estados */
+  --color-texto: #0f172a;
+  --color-texto-suave: #334155;
+  --color-texto-mutado: #64748b;
+  --color-texto-tenue: #64748b;
+  --color-error: #dc2626;          /* Rojo para alertas inline */
+  --color-alerta: #dc2626;
+  --color-alerta-fondo: #fef2f2;
+  --color-exito: #16a34a;
+  --color-advertencia: #d97706;
+  --color-info: #1dab78;
+  --color-resuelto: #0056b3;
+
+  /* Medidas y Sombras */
+  --espacio-1: 0.5rem;
+  --espacio-2: 1rem;
+  --espacio-3: 1.5rem;
+  --radio: 10px;
+  --sombra: 0 1px 3px rgba(15, 23, 42, 0.08);
+  --sombra-tarjeta: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+}
