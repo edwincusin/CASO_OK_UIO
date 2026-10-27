@@ -71,7 +71,7 @@ export default function Ingreso() {
             Cada caso bajo control.
           </p>
           <div className="texto-tenue" style={{ fontSize: '0.75rem', marginTop: '0.4rem', letterSpacing: '0.04em' }}>
-            SISTEMA INTERNO DE GESTIÓN Y SEGUIMIENTO · URBANIZACIÓN EL CONDADO
+            SISTEMA INTERNO DE GESTIÓN Y SEGUIMIENTO · URBANIZACIÓN EL QUINDE 
           </div>
         </div>
 
