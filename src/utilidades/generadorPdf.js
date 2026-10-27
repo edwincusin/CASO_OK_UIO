@@ -6,7 +6,7 @@ export function exportarCasosAPDF(casosFiltrados, parametros = {}, listaUsuarios
 
   doc.setFontSize(14);
   doc.setTextColor(42, 140, 75);
-  doc.text('URBANIZACIÓN EL CONDADO - REPORTE EJECUTIVO DE NOVEDADES', 14, 15);
+  doc.text('URBANIZACIÓN EL QUINDE - REPORTE EJECUTIVO DE NOVEDADES', 14, 15);
 
   doc.setFontSize(8);
   doc.setTextColor(60, 60, 60);
