@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ProveedorConfiguracion } from './contextos/ContextoConfiguracion';
 import { ProveedorSesion } from './contextos/ContextoSesion';
 import { ProveedorCatalogos } from './contextos/ContextoCatalogos';
 import { ProveedorCasos } from './contextos/ContextoCasos';
@@ -20,37 +21,45 @@ import Perfil from './paginas/Perfil';
 import Notificaciones from './paginas/Notificaciones';
 import Configuracion from './paginas/Configuracion';
 
+/**
+ * App
+ * Componente raíz de CASOOK: Sistema interno de gestión y seguimiento.
+ * Integra proveedores de configuración global, sesión, catálogos, casos y alertas.
+ */
+
 export default function App() {
   return (
-    <ProveedorSesion>
-      <ProveedorCatalogos>
-        <ProveedorCasos>
-          <ProveedorToast>
-            <ProveedorNotificaciones>
-              <BrowserRouter>
-                <Routes>
-                  <Route path="/ingreso" element={<Ingreso />} />
+    <ProveedorConfiguracion>
+      <ProveedorSesion>
+        <ProveedorCatalogos>
+          <ProveedorCasos>
+            <ProveedorToast>
+              <ProveedorNotificaciones>
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/ingreso" element={<Ingreso />} />
 
-                  <Route element={<RutaProtegida />}>
-                    <Route element={<DisenoPrincipal />}>
-                      <Route path="/" element={<Inicio />} />
-                      <Route path="/casos" element={<Casos />} />
-                      <Route path="/casos/nuevo" element={<CasoNuevo />} />
-                      <Route path="/casos/:idCaso" element={<CasoDetalle />} />
-                      <Route path="/reportes" element={<Reportes />} />
-                      <Route path="/usuarios" element={<Usuarios />} />
-                      <Route path="/catalogos" element={<Catalogos />} />
-                      <Route path="/perfil" element={<Perfil />} />
-                      <Route path="/notificaciones" element={<Notificaciones />} />
-                      <Route path="/configuracion" element={<Configuracion />} />
+                    <Route element={<RutaProtegida />}>
+                      <Route element={<DisenoPrincipal />}>
+                        <Route path="/" element={<Inicio />} />
+                        <Route path="/casos" element={<Casos />} />
+                        <Route path="/casos/nuevo" element={<CasoNuevo />} />
+                        <Route path="/casos/:idCaso" element={<CasoDetalle />} />
+                        <Route path="/reportes" element={<Reportes />} />
+                        <Route path="/usuarios" element={<Usuarios />} />
+                        <Route path="/catalogos" element={<Catalogos />} />
+                        <Route path="/perfil" element={<Perfil />} />
+                        <Route path="/notificaciones" element={<Notificaciones />} />
+                        <Route path="/configuracion" element={<Configuracion />} />
+                      </Route>
                     </Route>
-                  </Route>
-                </Routes>
-              </BrowserRouter>
-            </ProveedorNotificaciones>
-          </ProveedorToast>
-        </ProveedorCasos>
-      </ProveedorCatalogos>
-    </ProveedorSesion>
+                  </Routes>
+                </BrowserRouter>
+              </ProveedorNotificaciones>
+            </ProveedorToast>
+          </ProveedorCasos>
+        </ProveedorCatalogos>
+      </ProveedorSesion>
+    </ProveedorConfiguracion>
   );
 }

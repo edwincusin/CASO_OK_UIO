@@ -1,6 +1,8 @@
 // =========================================================
-// Datos iniciales de prueba (v4.0) - Quinde Control
-// Urbanización El Condado
+// Datos iniciales de demostración - CasoOK
+// Estados: en_proceso | por_confirmar | cerrado
+// Categorías: 10 categorías oficiales
+// Fechas: formato ISO con fecha y hora
 // =========================================================
 import { sumarDias } from '../utilidades/fechas';
 import { lotesGrandesCatalogo } from './lotesEcuador';
@@ -51,15 +53,14 @@ export const etiquetasRol = {
   mantenimiento: 'MANTENIMIENTO',
 };
 
-// Estados oficiales
+// Estados del caso (el estado "abierto" fue eliminado en Fase 1)
 export const estados = {
-  abierto: { nombre: 'ABIERTO', color: 'var(--color-texto-suave)' },
   en_proceso: { nombre: 'EN PROCESO', color: 'var(--color-info)' },
   por_confirmar: { nombre: 'POR CONFIRMAR', color: 'var(--color-advertencia)' },
   cerrado: { nombre: 'CERRADO', color: 'var(--color-resuelto)' },
 };
 
-// Plazos configurables
+// Plazos configurables por prioridad
 export const prioridadesIniciales = [
   { id: 'URGENTE', nombre: 'URGENTE', plazoDias: 1, color: 'var(--color-alerta)' },
   { id: 'ALTA', nombre: 'ALTA', plazoDias: 3, color: 'var(--color-advertencia)' },
@@ -73,14 +74,30 @@ export const etapasIniciales = [
   { id: 3, nombre: 'ETAPA 3', estado: true },
 ];
 
-export const callesIniciales = [
-  { id: 1, nombre: 'CALLE A', estado: true },
-  { id: 2, nombre: 'CALLE M', estado: true },
-  { id: 3, nombre: 'CALLE T', estado: true },
-  { id: 4, nombre: 'AVENIDA LOS CÓNDORES', estado: true },
-  { id: 5, nombre: 'CALLE DE LOS ARRAYANES', estado: true },
-  { id: 6, nombre: 'CALLE DEL PARQUE', estado: true },
-];
+// Generar calles de la A a la Z más los ejemplos solicitados
+function generarCallesIniciales() {
+  const lista = [];
+  let id = 1;
+
+  // Letras A a Z
+  const letras = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+  letras.forEach((letra) => {
+    lista.push({
+      id: id++,
+      nombre: `CALLE ${letra}`,
+      estado: true,
+    });
+  });
+
+  // Ejemplos adicionales especificados
+  lista.push({ id: id++, nombre: 'PASAJE 1', estado: true });
+  lista.push({ id: id++, nombre: 'PASAJE 3', estado: true });
+  lista.push({ id: id++, nombre: 'AV. COCO', estado: true });
+
+  return lista;
+}
+
+export const callesIniciales = generarCallesIniciales();
 
 export const lotesIniciales = lotesGrandesCatalogo;
 
@@ -90,16 +107,88 @@ export const areasIniciales = [
   { id: 3, nombre: 'SEGURIDAD', estado: true },
 ];
 
+// 10 Categorías oficiales con área inicial sugerida
 export const categoriasIniciales = [
-  { id: 1, nombre: 'ALUMBRADO PÚBLICO', estado: true },
-  { id: 2, nombre: 'FUGA DE AGUA', estado: true },
-  { id: 3, nombre: 'VÍAS Y SEÑALIZACIÓN', estado: true },
-  { id: 4, nombre: 'ÁREAS VERDES Y RIEGO', estado: true },
-  { id: 5, nombre: 'LIMPIEZA Y BASURA', estado: true },
-  { id: 6, nombre: 'MASCOTAS', estado: true },
-  { id: 7, nombre: 'PLAGAS', estado: true },
-  { id: 8, nombre: 'SEGURIDAD Y CONVIVENCIA', estado: true },
-  { id: 9, nombre: 'OTROS', estado: true },
+  {
+    id: 1,
+    codigo: '01',
+    nombre: '01 · Mantenimiento e infraestructura',
+    descripcion: 'Vías, aceras, parques, luminarias y redes propias.',
+    areaSugerida: 'MANTENIMIENTO',
+    estado: true,
+  },
+  {
+    id: 2,
+    codigo: '02',
+    nombre: '02 · Seguridad y vigilancia',
+    descripcion: 'Incidentes, guardias, cámaras y control de accesos.',
+    areaSugerida: 'SEGURIDAD',
+    estado: true,
+  },
+  {
+    id: 3,
+    codigo: '03',
+    nombre: '03 · Administración y trámites',
+    descripcion: 'Oficios, documentos, quejas y gestiones institucionales.',
+    areaSugerida: 'ADMINISTRACIÓN',
+    estado: true,
+  },
+  {
+    id: 4,
+    codigo: '04',
+    nombre: '04 · Limpieza y residuos',
+    descripcion: 'Basura, escombros, sumideros y saneamiento.',
+    areaSugerida: 'MANTENIMIENTO',
+    estado: true,
+  },
+  {
+    id: 5,
+    codigo: '05',
+    nombre: '05 · Mascotas y control de plagas',
+    descripcion: 'Tenencia responsable, animales extraviados y plagas.',
+    areaSugerida: 'ADMINISTRACIÓN',
+    estado: true,
+  },
+  {
+    id: 6,
+    codigo: '06',
+    nombre: '06 · Vialidad y señalización',
+    descripcion: 'Tránsito, señalización y evaluación de reductores.',
+    areaSugerida: 'MANTENIMIENTO',
+    estado: true,
+  },
+  {
+    id: 7,
+    codigo: '07',
+    nombre: '07 · Servicios básicos y redes',
+    descripcion: 'Agua, alcantarillado, riego y otras instalaciones.',
+    areaSugerida: 'MANTENIMIENTO',
+    estado: true,
+  },
+  {
+    id: 8,
+    codigo: '08',
+    nombre: '08 · Áreas comunales y convivencia',
+    descripcion: 'Canchas, parques, ruido y uso de instalaciones.',
+    areaSugerida: 'ADMINISTRACIÓN',
+    estado: true,
+  },
+  {
+    id: 9,
+    codigo: '09',
+    nombre: '09 · Obras y proyectos',
+    descripcion: 'Nuevas obras, mejoras y solicitudes de inversión.',
+    areaSugerida: 'ADMINISTRACIÓN',
+    estado: true,
+  },
+  {
+    id: 10,
+    codigo: '10',
+    nombre: '10 · Otros requerimientos',
+    descripcion: 'Casos que no encajen en las categorías anteriores.',
+    areaSugerida: 'ADMINISTRACIÓN',
+    estado: true,
+  },
 ];
 
 export const relacionesReportante = [
@@ -109,21 +198,24 @@ export const relacionesReportante = [
   { valor: 'PERSONAL INTERNO', nombre: 'PERSONAL INTERNO' },
 ];
 
+// Casos demo iniciales migrados sin el estado "abierto"
 export const casosInicialesDemo = [
   {
     id: 1,
     codigo: 'REQ-001',
+    fechaHoraApertura: `${sumarDias(-9)}T08:30:00Z`,
     fechaRecepcion: sumarDias(-9),
+    fechaHoraCierre: null,
     registradoPor: 2, // Ana Paredes
     reportanteNombre: 'SANDRA PAZMIÑO',
     reportanteContacto: '0994286523',
     reportanteTipo: 'PROPIETARIO',
-    reportanteLote: 'LOTE 505.1A',
+    reportanteLote: '505.1A',
     etapa: 'ETAPA 2',
     callePrimaria: 'CALLE M',
-    calleSecundaria: 'CALLE DEL PARQUE',
+    calleSecundaria: 'CALLE A',
     referenciaUbicacion: 'PARQUE FRENTE A LA EMBAJADA',
-    categoria: 'ÁREAS VERDES Y RIEGO',
+    categoria: '07 · Servicios básicos y redes',
     area: 'MANTENIMIENTO',
     prioridad: 'MEDIA',
     descripcion: 'EL PARQUE ESTÁ LLENO DE RAMAS Y HOJAS, Y LOS ASPERSORES NO FUNCIONAN ADECUADAMENTE.',
@@ -135,51 +227,65 @@ export const casosInicialesDemo = [
     seguimientos: [
       {
         id: 1,
+        fechaHora: `${sumarDias(-9)}T08:35:00Z`,
         fecha: sumarDias(-9),
         autor: 'ANA PAREDES',
         tipo: 'apertura',
-        nota: 'REPORTE RECIBIDO POR MESA DE AYUDA.',
+        nota: 'REPORTE RECIBIDO Y PUESTO EN PROCESO INMEDIATAMENTE.',
       },
     ],
   },
   {
     id: 2,
     codigo: 'REQ-002',
+    fechaHoraApertura: `${sumarDias(-2)}T19:40:00Z`,
     fechaRecepcion: sumarDias(-2),
+    fechaHoraCierre: null,
     registradoPor: 2, // Ana Paredes
     reportanteNombre: 'JUAN MOSQUERA',
     reportanteContacto: '0995829961',
     reportanteTipo: 'INQUILINO',
-    reportanteLote: 'LOTE 866',
+    reportanteLote: '866.0',
     etapa: 'ETAPA 3',
     callePrimaria: 'CALLE T',
-    calleSecundaria: 'AVENIDA LOS CÓNDORES',
+    calleSecundaria: 'CALLE B',
     referenciaUbicacion: 'CERCA DE LA GARITA POSTERIOR',
-    categoria: 'ALUMBRADO PÚBLICO',
-    area: 'ADMINISTRACIÓN',
+    categoria: '01 · Mantenimiento e infraestructura',
+    area: 'MANTENIMIENTO',
     prioridad: 'ALTA',
     descripcion: 'POSTE DE ALUMBRADO PÚBLICO APAGADO DESDE HACE VARIAS NOCHES.',
     fotoInicial: 'poste_luz_danado.jpg',
     fotoFinal: null,
     pdfInicial: 'oficio_empresa_electrica.pdf',
-    estado: 'abierto',
+    estado: 'en_proceso', // Migrado de abierto a en_proceso
     proximoSeguimiento: sumarDias(1),
-    seguimientos: [],
+    seguimientos: [
+      {
+        id: 1,
+        fechaHora: `${sumarDias(-2)}T19:42:00Z`,
+        fecha: sumarDias(-2),
+        autor: 'ANA PAREDES',
+        tipo: 'apertura',
+        nota: 'REPORTE INICIAL REGISTRADO DIRECTAMENTE EN PROCESO.',
+      },
+    ],
   },
   {
     id: 3,
     codigo: 'REQ-003',
+    fechaHoraApertura: `${sumarDias(-4)}T11:15:00Z`,
     fechaRecepcion: sumarDias(-4),
+    fechaHoraCierre: null,
     registradoPor: 3, // Luis Guerrero
     reportanteNombre: 'CENTRO DE CONTROL',
     reportanteContacto: '022498700',
     reportanteTipo: 'PERSONAL INTERNO',
-    reportanteLote: 'LOTE 101',
+    reportanteLote: '101.1',
     etapa: 'ETAPA 1',
     callePrimaria: 'CALLE A',
-    calleSecundaria: 'CALLE DE LOS ARRAYANES',
+    calleSecundaria: 'PASAJE 1',
     referenciaUbicacion: 'REDONDEL FRENTE A LA IGLESIA PRINCIPAL',
-    categoria: 'PLAGAS',
+    categoria: '05 · Mascotas y control de plagas',
     area: 'MANTENIMIENTO',
     prioridad: 'URGENTE',
     descripcion: 'SE OBSERVA UN PANAL DE AVISPAS EN EL REDONDEL CON RIESGO PARA TRANSEÚNTES.',
@@ -191,6 +297,15 @@ export const casosInicialesDemo = [
     seguimientos: [
       {
         id: 1,
+        fechaHora: `${sumarDias(-4)}T11:20:00Z`,
+        fecha: sumarDias(-4),
+        autor: 'LUIS GUERRERO',
+        tipo: 'apertura',
+        nota: 'AVISO DE EMERGENCIA DERIVADO A MANTENIMIENTO.',
+      },
+      {
+        id: 2,
+        fechaHora: `${sumarDias(-1)}T16:00:00Z`,
         fecha: sumarDias(-1),
         autor: 'JORGE ESTRADA',
         tipo: 'atendido',
@@ -202,41 +317,54 @@ export const casosInicialesDemo = [
   {
     id: 4,
     codigo: 'REQ-004',
+    fechaHoraApertura: `${sumarDias(-1)}T15:00:00Z`,
     fechaRecepcion: sumarDias(-1),
+    fechaHoraCierre: null,
     registradoPor: 3, // Luis Guerrero
     reportanteNombre: 'PAULINA RUALES',
     reportanteContacto: '0992502313',
     reportanteTipo: 'PROPIETARIO',
-    reportanteLote: 'LOTE 507',
+    reportanteLote: '507.0',
     etapa: 'ETAPA 2',
     callePrimaria: 'CALLE M',
     calleSecundaria: '',
     referenciaUbicacion: 'ZONA DE PASEO DE MASCOTAS',
-    categoria: 'MASCOTAS',
+    categoria: '05 · Mascotas y control de plagas',
     area: 'SEGURIDAD',
     prioridad: 'BAJA',
     descripcion: 'PASEO DE PERROS SIN CORREA GENERA CONFLICTOS ENTRE RESIDENTES EN LA TARDE.',
     fotoInicial: null,
     fotoFinal: null,
     pdfInicial: null,
-    estado: 'abierto',
+    estado: 'en_proceso', // Migrado de abierto a en_proceso
     proximoSeguimiento: sumarDias(4),
-    seguimientos: [],
+    seguimientos: [
+      {
+        id: 1,
+        fechaHora: `${sumarDias(-1)}T15:05:00Z`,
+        fecha: sumarDias(-1),
+        autor: 'LUIS GUERRERO',
+        tipo: 'apertura',
+        nota: 'NOVEDAD ASIGNADA A PATRULLA DE SEGURIDAD.',
+      },
+    ],
   },
   {
     id: 5,
     codigo: 'REQ-005',
+    fechaHoraApertura: `${sumarDias(-12)}T09:00:00Z`,
     fechaRecepcion: sumarDias(-12),
+    fechaHoraCierre: `${sumarDias(-8)}T14:30:00Z`, // 3 días y 5.5 horas de resolución
     registradoPor: 1, // Carlos Mendoza
     reportanteNombre: 'MÓNICA LANDÁZURI',
     reportanteContacto: '0998730141',
     reportanteTipo: 'PROPIETARIO',
-    reportanteLote: 'LOTE 508.6',
+    reportanteLote: '508.6',
     etapa: 'ETAPA 2',
     callePrimaria: 'CALLE M',
     calleSecundaria: 'CALLE T',
     referenciaUbicacion: 'ACERA EXTERIOR',
-    categoria: 'ÁREAS VERDES Y RIEGO',
+    categoria: '07 · Servicios básicos y redes',
     area: 'MANTENIMIENTO',
     prioridad: 'MEDIA',
     descripcion: 'SOLICITA PODA DE ÁRBOLES DE GRAN ALTURA EN LA CALLE M QUE OBSTRUYEN CABLES.',
@@ -248,6 +376,15 @@ export const casosInicialesDemo = [
     seguimientos: [
       {
         id: 1,
+        fechaHora: `${sumarDias(-12)}T09:10:00Z`,
+        fecha: sumarDias(-12),
+        autor: 'CARLOS MENDOZA',
+        tipo: 'apertura',
+        nota: 'INSPECCIÓN INICIAL DE RAMAS CERCA DEL TENDIDO ELÉCTRICO.',
+      },
+      {
+        id: 2,
+        fechaHora: `${sumarDias(-9)}T11:00:00Z`,
         fecha: sumarDias(-9),
         autor: 'JORGE ESTRADA',
         tipo: 'atendido',
@@ -255,7 +392,8 @@ export const casosInicialesDemo = [
         foto: 'arboles_podados_despejado.jpg',
       },
       {
-        id: 2,
+        id: 3,
+        fechaHora: `${sumarDias(-8)}T14:30:00Z`,
         fecha: sumarDias(-8),
         autor: 'ANA PAREDES',
         tipo: 'confirmacion',
@@ -270,7 +408,7 @@ export const notificacionesDemoIniciales = [
     id: 1,
     idCaso: 1,
     tipo: 'SEGUIMIENTO VENCIDO',
-    mensaje: 'REQ-001 LLEVA 3 DÍAS DE ATRASO EN SEGUIMIENTO.',
+    mensaje: 'REQ-001 LLEVA DÍAS DE ATRASO EN SEGUIMIENTO.',
     fecha: sumarDias(0),
     leida: false,
   },
@@ -286,7 +424,7 @@ export const notificacionesDemoIniciales = [
     id: 3,
     idCaso: 4,
     tipo: 'SOLICITUD NUEVA',
-    mensaje: 'NUEVA SOLICITUD REQ-004: PASEO DE MASCOTAS.',
+    mensaje: 'NUEVA SOLICITUD REQ-004 EN PROCESO: PASEO DE MASCOTAS.',
     fecha: sumarDias(-1),
     leida: false,
   },

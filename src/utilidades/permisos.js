@@ -1,3 +1,8 @@
+/**
+ * permisos.js
+ * Reglas de autorización y control de acceso basado en roles para CASOOK.
+ */
+
 export function esSuperusuario(usuario) {
   if (!usuario) return false;
   return usuario.rol === 'superusuario';
@@ -62,9 +67,16 @@ export function puedeConfirmarCaso(usuario, caso) {
   return usuario.rol === 'superusuario' || usuario.rol === 'operador_administracion';
 }
 
+export function puedeDevolverAProceso(usuario, caso) {
+  if (!usuario || !caso) return false;
+  if (caso.estado !== 'por_confirmar') return false;
+  return usuario.rol === 'superusuario' || usuario.rol === 'operador_administracion';
+}
+
 export function puedeEditarCaso(usuario, caso) {
   if (!usuario || !caso) return false;
-  return caso.estado === 'abierto' && caso.registradoPor === usuario.id;
+  // Los casos nacen directamente en_proceso; su creador o el superusuario pueden editarlos mientras sigan en_proceso
+  return caso.estado === 'en_proceso' && (caso.registradoPor === usuario.id || usuario.rol === 'superusuario');
 }
 
 export function puedeAgregarSeguimiento(usuario) {

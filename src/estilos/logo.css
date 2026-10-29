@@ -1,0 +1,90 @@
+/* =========================================================
+   Logo CasoOK - Identidad Visual (Solo CSS3)
+   ========================================================= */
+
+.casook-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 900;
+  line-height: 1;
+  user-select: none;
+  text-decoration: none;
+}
+
+.casook-logo__texto-caso {
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* En fondos claros */
+.casook-logo--oscuro .casook-logo__texto-caso {
+  color: #11321d;
+  text-shadow: none;
+}
+
+/* Pastilla dorada para "OK" */
+.casook-logo__pastilla {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: linear-gradient(135deg, #fde047 0%, #facc15 50%, #eab308 100%);
+  color: #0f2818;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(234, 179, 8, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(254, 240, 138, 0.8);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  transition: transform 0.15s ease;
+}
+
+.casook-logo:hover .casook-logo__pastilla {
+  transform: scale(1.05);
+}
+
+.casook-logo__check-svg {
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Variantes de tamaño */
+.casook-logo--sm {
+  font-size: 0.95rem;
+}
+.casook-logo--sm .casook-logo__pastilla {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.8rem;
+}
+.casook-logo--sm .casook-logo__check-svg {
+  width: 11px;
+  height: 11px;
+}
+
+.casook-logo--md {
+  font-size: 1.3rem;
+}
+.casook-logo--md .casook-logo__pastilla {
+  padding: 0.2rem 0.6rem;
+  font-size: 1rem;
+}
+.casook-logo--md .casook-logo__check-svg {
+  width: 14px;
+  height: 14px;
+}
+
+.casook-logo--lg {
+  font-size: 1.85rem;
+}
+.casook-logo--lg .casook-logo__pastilla {
+  padding: 0.3rem 0.85rem;
+  font-size: 1.35rem;
+}
+.casook-logo--lg .casook-logo__check-svg {
+  width: 18px;
+  height: 18px;
+}

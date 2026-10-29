@@ -7,20 +7,61 @@ import {
   categoriasIniciales,
 } from '../datos/datosDemo';
 import { aMayusculas } from '../utilidades/texto';
+import { validarFormatoLote, ordenarLotesNatural } from '../datos/lotesEcuador';
+
+/**
+ * ContextoCatalogos
+ * Gestión centralizada de catálogos independientes (Etapas, Calles, Lotes, Áreas, Categorías).
+ * Lotes y etapas son totalmente independientes.
+ * Incluye borrado lógico e inserción masiva de lotes por lote.
+ */
 
 const ContextoCatalogos = createContext(null);
+
+// Expresión para validación de nombres de calles (letras, números, espacios, puntos y acentos)
+const REGEX_CALLE = /^[A-Z0-9ÁÉÍÓÚÑ\s\.]+$/;
 
 export function ProveedorCatalogos({ children }) {
   const [etapas, setEtapas] = useState(etapasIniciales);
   const [calles, setCalles] = useState(callesIniciales);
-  const [lotes, setLotes] = useState(lotesIniciales);
+  const [lotes, setLotes] = useState(() => ordenarLotesNatural(lotesIniciales));
   const [areas, setAreas] = useState(areasIniciales);
   const [categorias, setCategorias] = useState(categoriasIniciales);
 
-  // Helper generador para agregar item
+  // Helper para validar item antes de crear
+  function validarNombreItem(catalogoTipo, nombreMayus) {
+    if (!nombreMayus) {
+      return { valido: false, mensaje: 'EL NOMBRE ES OBLIGATORIO' };
+    }
+
+    if (catalogoTipo === 'lotes') {
+      if (!validarFormatoLote(nombreMayus)) {
+        return {
+          valido: false,
+          mensaje: 'FORMATO INVÁLIDO. DEBE SER NUMERO.SUBLOTE (EJ: 12.3, 520.0, 189.CASA1)',
+        };
+      }
+    }
+
+    if (catalogoTipo === 'calles') {
+      if (!REGEX_CALLE.test(nombreMayus)) {
+        return {
+          valido: false,
+          mensaje: 'LA CALLE SOLO PUEDE CONTENER LETRAS, NÚMEROS, ESPACIOS Y PUNTOS',
+        };
+      }
+    }
+
+    return { valido: true };
+  }
+
+  // Helper para agregar item individual
   function crearItem(catalogoTipo, nombre) {
     const nombreMayus = aMayusculas(nombre).trim();
-    if (!nombreMayus) return { exito: false, mensaje: 'EL NOMBRE ES OBLIGATORIO' };
+    const validacion = validarNombreItem(catalogoTipo, nombreMayus);
+    if (!validacion.valido) {
+      return { exito: false, mensaje: validacion.mensaje };
+    }
 
     let lista;
     let setLista;
@@ -47,20 +88,82 @@ export function ProveedorCatalogos({ children }) {
 
     const nuevoId = lista.length > 0 ? Math.max(...lista.map((i) => i.id)) + 1 : 1;
     const nuevo = { id: nuevoId, nombre: nombreMayus, estado: true };
-    setLista([...lista, nuevo]);
+
+    if (catalogoTipo === 'lotes') {
+      setLista(ordenarLotesNatural([...lista, nuevo]));
+    } else {
+      setLista([...lista, nuevo]);
+    }
+
     return { exito: true, mensaje: 'REGISTRO CREADO CON ÉXITO', item: nuevo };
+  }
+
+  // Inserción masiva de lotes (uno por línea)
+  function agregarVariosLotes(textoMultilinea) {
+    if (!textoMultilinea || !textoMultilinea.trim()) {
+      return { exito: false, mensaje: 'POR FAVOR INGRESE AL MENOS UN LOTE' };
+    }
+
+    const lineas = textoMultilinea
+      .split(/\r?\n/)
+      .map((l) => aMayusculas(l).trim())
+      .filter((l) => l.length > 0);
+
+    if (lineas.length === 0) {
+      return { exito: false, mensaje: 'NO SE ENCONTRARON LÍNEAS VÁLIDAS' };
+    }
+
+    const existentesSet = new Set(lotes.map((l) => l.nombre));
+    const procesadosEnLote = new Set();
+    const nuevosObjetos = [];
+    const invalidos = [];
+    const duplicados = [];
+
+    let proximoId = lotes.length > 0 ? Math.max(...lotes.map((i) => i.id)) + 1 : 1;
+
+    for (const linea of lineas) {
+      if (!validarFormatoLote(linea)) {
+        invalidos.push(linea);
+        continue;
+      }
+      if (existentesSet.has(linea) || procesadosEnLote.has(linea)) {
+        duplicados.push(linea);
+        continue;
+      }
+      procesadosEnLote.add(linea);
+      nuevosObjetos.push({
+        id: proximoId++,
+        nombre: linea,
+        estado: true,
+      });
+    }
+
+    if (nuevosObjetos.length > 0) {
+      setLotes(ordenarLotesNatural([...lotes, ...nuevosObjetos]));
+    }
+
+    return {
+      exito: nuevosObjetos.length > 0,
+      agregados: nuevosObjetos.length,
+      invalidos,
+      duplicados,
+      totalProcesados: lineas.length,
+    };
   }
 
   function actualizarItem(catalogoTipo, id, nuevoNombre) {
     const nombreMayus = aMayusculas(nuevoNombre).trim();
-    if (!nombreMayus) return { exito: false, mensaje: 'EL NOMBRE ES OBLIGATORIO' };
+    const validacion = validarNombreItem(catalogoTipo, nombreMayus);
+    if (!validacion.valido) {
+      return { exito: false, mensaje: validacion.mensaje };
+    }
 
     const updater = (lista) =>
       lista.map((item) => (item.id === id ? { ...item, nombre: nombreMayus } : item));
 
     if (catalogoTipo === 'etapas') setEtapas(updater);
     else if (catalogoTipo === 'calles') setCalles(updater);
-    else if (catalogoTipo === 'lotes') setLotes(updater);
+    else if (catalogoTipo === 'lotes') setLotes((prev) => ordenarLotesNatural(updater(prev)));
     else if (catalogoTipo === 'areas') setAreas(updater);
     else setCategorias(updater);
 
@@ -108,7 +211,7 @@ export function ProveedorCatalogos({ children }) {
     const item = lista.find((i) => i.id === id);
     if (!item) return { exito: false, mensaje: 'REGISTRO NO ENCONTRADO' };
 
-    // Verificar relaciones
+    // Verificar relaciones con novedades históricas
     let tieneRelaciones = false;
     if (campoVerificacion === 'etapa') {
       tieneRelaciones = casos.some((c) => aMayusculas(c.etapa) === aMayusculas(item.nombre));
@@ -116,7 +219,8 @@ export function ProveedorCatalogos({ children }) {
       tieneRelaciones = casos.some(
         (c) =>
           aMayusculas(c.callePrimaria) === aMayusculas(item.nombre) ||
-          aMayusculas(c.calleSecundaria) === aMayusculas(item.nombre)
+          aMayusculas(c.calleSecundaria) === aMayusculas(item.nombre) ||
+          aMayusculas(c.calle) === aMayusculas(item.nombre)
       );
     } else if (campoVerificacion === 'lote') {
       tieneRelaciones = casos.some(
@@ -156,6 +260,7 @@ export function ProveedorCatalogos({ children }) {
     areas,
     categorias,
     crearItem,
+    agregarVariosLotes,
     actualizarItem,
     toggleEstadoItem,
     eliminarItem,
@@ -172,6 +277,7 @@ export const useCatalogos = () =>
     areas: [],
     categorias: [],
     crearItem: () => {},
+    agregarVariosLotes: () => {},
     actualizarItem: () => {},
     toggleEstadoItem: () => {},
     eliminarItem: () => {},

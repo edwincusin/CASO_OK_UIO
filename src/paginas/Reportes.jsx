@@ -7,16 +7,24 @@ import Paginador from '../componentes/Paginador';
 import { useSesion } from '../contextos/ContextoSesion';
 import { useCasos } from '../contextos/ContextoCasos';
 import { useCatalogos } from '../contextos/ContextoCatalogos';
+import { useConfiguracion } from '../contextos/ContextoConfiguracion';
 import { useToast } from '../contextos/ContextoToast';
 import { exportarCasosAPDF } from '../utilidades/generadorPdf';
 import { estados } from '../datos/datosDemo';
 import { puedeVerReportes } from '../utilidades/permisos';
-import { formatearFecha } from '../utilidades/fechas';
+import { formatearFecha, formatearFechaHora, obtenerTiempoResolucion } from '../utilidades/fechas';
+
+/**
+ * Reportes
+ * Módulo de auditoría general y exportación oficial de reportes en PDF con jsPDF y jspdf-autotable.
+ * Incluye columnas de apertura, cierre, tiempo de resolución, resumen inferior y branding CASOOK.
+ */
 
 export default function Reportes() {
   const { usuario, usuarios } = useSesion();
   const { todosLosCasos } = useCasos();
   const { etapas, categorias, areas } = useCatalogos();
+  const { nombreUrbanizacion } = useConfiguracion();
   const { mostrarToast } = useToast();
 
   if (!puedeVerReportes(usuario)) {
@@ -60,8 +68,8 @@ export default function Reportes() {
       return;
     }
 
-    exportarCasosAPDF(casosFiltrados, filtros, usuarios);
-    mostrarToast('REPORTE PDF GENERADO EXITOSAMENTE', 'exito');
+    exportarCasosAPDF(casosFiltrados, filtros, usuarios, nombreUrbanizacion);
+    mostrarToast('REPORTE GENERAL PDF GENERADO EXITOSAMENTE', 'exito');
   }
 
   function limpiarFiltros() {
@@ -80,10 +88,10 @@ export default function Reportes() {
     <>
       <EncabezadoPagina
         titulo="REPORTES Y AUDITORÍA GENERAL"
-        subtitulo="Quinde Control · Filtros por creador, fechas y exportación oficial en PDF"
+        subtitulo="CASOOK · Filtros por creador, tiempos de resolución y exportación oficial en PDF"
       >
         <button className="boton boton--primario" onClick={descargarPDF}>
-          <Download size={18} /> EXPORTAR PDF
+          <Download size={18} /> EXPORTAR REPORTE PDF
         </button>
       </EncabezadoPagina>
 
@@ -208,9 +216,9 @@ export default function Reportes() {
         </div>
       </section>
 
-      {/* PREVISUALIZACIÓN DE TABLA CON PAGINACIÓN A 20 */}
+      {/* PREVISUALIZACIÓN DE REGISTROS A EXPORTAR */}
       <section className="tarjeta">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
           <h2>PREVISUALIZACIÓN DE REGISTROS A EXPORTAR</h2>
           <button className="boton boton--secundario" onClick={descargarPDF}>
             <FileText size={16} /> DESCARGAR PDF ({casosFiltrados.length})
@@ -222,9 +230,10 @@ export default function Reportes() {
             <thead>
               <tr>
                 <th>CÓDIGO</th>
-                <th>FECHA</th>
+                <th>APERTURA</th>
+                <th>TIEMPO</th>
                 <th>REPORTANTE</th>
-                <th>LOTE RESID.</th>
+                <th>LOTE</th>
                 <th>ETAPA</th>
                 <th>CALLE PPAL.</th>
                 <th>ÁREA</th>
@@ -235,17 +244,25 @@ export default function Reportes() {
             <tbody>
               {casosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }}>
+                  <td colSpan={10} style={{ textAlign: 'center', padding: '2rem' }}>
                     NO EXISTEN REGISTROS CON EL CRITERIO DE BÚSQUEDA
                   </td>
                 </tr>
               ) : (
                 casosPaginados.map((c) => {
                   const creador = usuarios.find((u) => u.id === c.registradoPor);
+                  const fechaApertura = c.fechaHoraApertura
+                    ? formatearFechaHora(c.fechaHoraApertura)
+                    : formatearFecha(c.fechaRecepcion);
+                  const duracion = obtenerTiempoResolucion(c);
+
                   return (
                     <tr key={c.id}>
                       <td><strong>{c.codigo}</strong></td>
-                      <td>{formatearFecha(c.fechaRecepcion)}</td>
+                      <td>{fechaApertura}</td>
+                      <td>
+                        <span className="texto-tenue">{duracion}</span>
+                      </td>
                       <td>{c.reportanteNombre}</td>
                       <td>{c.reportanteLote || c.lote || '-'}</td>
                       <td>{c.etapa || '-'}</td>

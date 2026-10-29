@@ -1,6 +1,9 @@
 import { X, ZoomIn } from 'lucide-react';
+import { useConfiguracion } from '../contextos/ContextoConfiguracion';
 
 export default function ModalVisorFoto({ url, titulo, alCerrar }) {
+  const { nombreUrbanizacion } = useConfiguracion();
+
   if (!url) return null;
 
   return (
@@ -56,7 +59,7 @@ export default function ModalVisorFoto({ url, titulo, alCerrar }) {
         </div>
 
         <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', color: '#AAA' }}>
-          <span>URBANIZACIÓN EL CONDADO - REGISTRO VISUAL</span>
+          <span>{nombreUrbanizacion ? nombreUrbanizacion.toUpperCase() : 'URBANIZACIÓN'} - REGISTRO VISUAL</span>
           <button
             type="button"
             className="boton boton--secundario"

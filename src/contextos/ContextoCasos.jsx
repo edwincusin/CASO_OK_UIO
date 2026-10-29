@@ -1,8 +1,15 @@
 import { createContext, useContext, useState, useMemo } from 'react';
 import { casosInicialesDemo, prioridadesIniciales } from '../datos/datosDemo';
-import { hoy, sumarDias, diasDeAtraso } from '../utilidades/fechas';
+import { hoy, ahoraISO, sumarDias, diasDeAtraso } from '../utilidades/fechas';
 import { aMayusculas } from '../utilidades/texto';
 import { useSesion } from './ContextoSesion';
+
+/**
+ * ContextoCasos
+ * Maneja el ciclo de vida de los casos en CASOOK:
+ * Estados: en_proceso → por_confirmar → cerrado (con opción de devolver a en_proceso con nota obligatoria).
+ * Registra fechas ISO con zona horaria America/Guayaquil y calcula métricas en tiempo real.
+ */
 
 const ContextoCasos = createContext(null);
 
@@ -23,7 +30,7 @@ export function ProveedorCasos({ children }) {
     );
   }
 
-  // Filtrado estricto por rol v4.0 que garantiza que MANTENIMIENTO vea exclusivamente sus casos
+  // Filtrado de casos según rol del usuario autenticado
   const casosVisibles = useMemo(() => {
     if (!usuario) return [];
 
@@ -44,16 +51,19 @@ export function ProveedorCasos({ children }) {
     return [];
   }, [casos, usuario]);
 
-  // Crear caso V4
+  // Crear caso nuevo: nace directamente en 'en_proceso' con fecha y hora de apertura
   function crearCaso(datosFormulario, autorUsuario) {
     const nuevoId = casos.length > 0 ? Math.max(...casos.map((c) => Number(c.id) || 0)) + 1 : 1;
     const prioridadObj = buscarPrioridad(datosFormulario.prioridad);
     const plazoDias = prioridadObj?.plazoDias ?? 3;
+    const momentoActual = ahoraISO();
 
     const nuevoCaso = {
       id: nuevoId,
       codigo: `REQ-${String(nuevoId).padStart(3, '0')}`,
       fechaRecepcion: hoy(),
+      fechaHoraApertura: momentoActual,
+      fechaHoraCierre: null,
       registradoPor: autorUsuario?.id || 1,
       reportanteNombre: aMayusculas(datosFormulario.reportanteNombre),
       reportanteTipo: datosFormulario.reportanteTipo || 'PROPIETARIO',
@@ -71,15 +81,16 @@ export function ProveedorCasos({ children }) {
       fotoInicial: datosFormulario.fotoInicial || null,
       fotoFinal: null,
       pdfInicial: datosFormulario.pdfInicial || null,
-      estado: 'abierto',
+      estado: 'en_proceso',
       proximoSeguimiento: sumarDias(plazoDias),
       seguimientos: [
         {
           id: 1,
           fecha: hoy(),
+          fechaHora: momentoActual,
           autor: `${autorUsuario?.nombre || ''} ${autorUsuario?.apellido || ''}`.trim() || 'USUARIO',
           tipo: 'apertura',
-          nota: 'REPORTE INICIAL REGISTRADO EN QUINDE CONTROL.',
+          nota: 'REPORTE INICIAL REGISTRADO EN CASOOK.',
           foto: datosFormulario.fotoInicial || null,
         },
       ],
@@ -89,15 +100,15 @@ export function ProveedorCasos({ children }) {
     return nuevoCaso;
   }
 
-  // Edición restringida
+  // Edición restringida a casos en proceso por su creador o superusuario
   function actualizarCaso(idCaso, datosModificados, autorUsuario) {
     const caso = casos.find((c) => c.id === idCaso);
     if (!caso) return { exito: false, mensaje: 'CASO NO ENCONTRADO' };
-    if (caso.estado !== 'abierto') {
-      return { exito: false, mensaje: 'SOLO SE PUEDEN EDITAR CASOS EN ESTADO ABIERTO' };
+    if (caso.estado !== 'en_proceso') {
+      return { exito: false, mensaje: 'SOLO SE PUEDEN EDITAR CASOS EN ESTADO EN PROCESO' };
     }
     if (caso.registradoPor !== autorUsuario?.id && autorUsuario?.rol !== 'superusuario') {
-      return { exito: false, mensaje: 'SOLO EL USUARIO QUE CREÓ EL CASO PUEDE MODIFICARLO' };
+      return { exito: false, mensaje: 'SOLO EL USUARIO QUE CREÓ EL CASO O UN SUPERUSUARIO PUEDE MODIFICARLO' };
     }
 
     setCasos((actuales) =>
@@ -124,8 +135,10 @@ export function ProveedorCasos({ children }) {
     return { exito: true, mensaje: 'CASO ACTUALIZADO CON ÉXITO' };
   }
 
-  // Seguimiento
+  // Agregar nota o cambio de estado con registro de fechaHora ISO
   function agregarSeguimiento(idCaso, autorUsuario, tipo, nota, nuevoEstado, fotoFinal = null) {
+    const momentoActual = ahoraISO();
+
     setCasos((actuales) =>
       actuales.map((caso) => {
         if (caso.id !== idCaso) return caso;
@@ -136,23 +149,48 @@ export function ProveedorCasos({ children }) {
         const autorNombre = `${autorUsuario?.nombre || ''} ${autorUsuario?.apellido || ''}`.trim() || 'USUARIO';
 
         const nuevoSeguimiento = {
-          id: caso.seguimientos.length + 1,
+          id: (caso.seguimientos?.length || 0) + 1,
           fecha: hoy(),
+          fechaHora: momentoActual,
           autor: autorNombre,
           tipo,
           nota: aMayusculas(nota),
           foto: fotoFinal,
         };
 
+        // Si se cierra el caso, se almacena fechaHoraCierre automáticamente
+        const fechaHoraCierre =
+          estadoFinal === 'cerrado'
+            ? (caso.fechaHoraCierre || momentoActual)
+            : null;
+
         return {
           ...caso,
           estado: estadoFinal,
+          fechaHoraCierre,
           fotoFinal: fotoFinal || caso.fotoFinal,
           proximoSeguimiento: estadoFinal === 'cerrado' ? caso.proximoSeguimiento : sumarDias(plazoDias),
-          seguimientos: [nuevoSeguimiento, ...caso.seguimientos],
+          seguimientos: [nuevoSeguimiento, ...(caso.seguimientos || [])],
         };
       })
     );
+  }
+
+  // Devolver un caso a "en_proceso" desde "por_confirmar" con nota obligatoria
+  function devolverAProceso(idCaso, autorUsuario, motivoNota) {
+    const textoNota = (motivoNota || '').trim();
+    if (!textoNota) {
+      return { exito: false, mensaje: 'LA NOTA EXPLICATIVA ES OBLIGATORIA PARA DEVOLVER EL CASO' };
+    }
+
+    agregarSeguimiento(
+      idCaso,
+      autorUsuario,
+      'devolucion',
+      `DEVUELTO A EN PROCESO: ${textoNota}`,
+      'en_proceso'
+    );
+    return { exito: true, mensaje: 'CASO DEVUELTO AL ESTADO EN PROCESO' };
   }
 
   function cambiarPlazoPrioridad(idPrioridad, nuevoPlazo) {
@@ -163,7 +201,7 @@ export function ProveedorCasos({ children }) {
     );
   }
 
-  // Casos enriquecidos con propiedad de vencimiento
+  // Casos enriquecidos con métricas de atraso
   const enriquecer = (lista) =>
     lista.map((c) => ({
       ...c,
@@ -179,6 +217,7 @@ export function ProveedorCasos({ children }) {
     crearCaso,
     actualizarCaso,
     agregarSeguimiento,
+    devolverAProceso,
     cambiarPlazoPrioridad,
   };
 

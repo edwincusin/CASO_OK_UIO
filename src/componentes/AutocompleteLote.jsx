@@ -1,5 +1,10 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 
+/**
+ * AutocompleteLote
+ * Autocompletado optimizado para el catálogo de lotes (NUMERO.SUBLOTE).
+ * Muestra únicamente el código del lote, sin asociar etapas.
+ */
 export default function AutocompleteLote({ lotes = [], valorSeleccionado = '', alSeleccionar, error }) {
   const [busqueda, setBusqueda] = useState(valorSeleccionado || '');
   const [mostrarOpciones, setMostrarOpciones] = useState(false);
@@ -21,19 +26,19 @@ export default function AutocompleteLote({ lotes = [], valorSeleccionado = '', a
     return () => document.removeEventListener('mousedown', handleClickAfuera);
   }, []);
 
-  // Filtrado eficiente en tiempo real sobre los 3000+ lotes
+  // Filtrado en tiempo real con límite de 15 coincidencias
   const lotesFiltrados = useMemo(() => {
     if (!busqueda.trim()) return [];
     const termino = busqueda.toUpperCase().trim();
     return lotes
-      .filter((l) => l.nombre.toUpperCase().includes(termino))
-      .slice(0, 15); // Limitar a las primeras 15 coincidencias visuales para máximo rendimiento
+      .filter((l) => (l.nombre || '').toUpperCase().includes(termino))
+      .slice(0, 15);
   }, [busqueda, lotes]);
 
   function manejarSeleccion(lote) {
     const nombreMayus = lote.nombre.toUpperCase();
     setBusqueda(nombreMayus);
-    alSeleccionar(nombreMayus, lote.etapa);
+    alSeleccionar(nombreMayus);
     setMostrarOpciones(false);
   }
 
@@ -54,7 +59,7 @@ export default function AutocompleteLote({ lotes = [], valorSeleccionado = '', a
         onFocus={() => {
           if (busqueda.trim().length > 0) setMostrarOpciones(true);
         }}
-        placeholder="Escriba para buscar lote (ej. LOTE 508.6, LOTE 101)..."
+        placeholder="Ej: 189.CASA1, 12.3, 520.0"
         className={`campo-input ${error ? 'campo-input--error' : ''}`}
       />
       {error && <span className="campo-mensaje-error">{error}</span>}
@@ -67,7 +72,7 @@ export default function AutocompleteLote({ lotes = [], valorSeleccionado = '', a
               className="autocomplete-item"
               onClick={() => manejarSeleccion(lote)}
             >
-              <strong>{lote.nombre}</strong> — <span className="texto-tenue">{lote.etapa || 'SIN ETAPA'}</span>
+              <strong>{lote.nombre}</strong>
             </li>
           ))}
         </ul>

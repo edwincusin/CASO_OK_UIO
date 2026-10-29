@@ -13,11 +13,17 @@ import { useToast } from '../contextos/ContextoToast';
 import { estados } from '../datos/datosDemo';
 import { puedeEditarCaso } from '../utilidades/permisos';
 import { aMayusculas } from '../utilidades/texto';
-import { soloLetras, soloNumeros } from '../utilidades/validaciones';
+import { soloLetras } from '../utilidades/validaciones';
+
+/**
+ * Casos
+ * Listado general de casos con filtros por búsqueda, estado, prioridad y etapa.
+ * Paginación a 20 registros por página y edición restringida a casos en proceso.
+ */
 
 export default function Casos() {
   const { usuario } = useSesion();
-  const { casos, prioridades, actualizarCaso } = useCasos();
+  const { casos, actualizarCaso } = useCasos();
   const { etapas, calles, lotes, categorias, areas } = useCatalogos();
   const { mostrarToast } = useToast();
 
@@ -86,7 +92,7 @@ export default function Casos() {
 
   return (
     <>
-      <EncabezadoPagina titulo="CASOS REGISTRADOS" subtitulo="Gestión y seguimiento de novedades">
+      <EncabezadoPagina titulo="CASOS REGISTRADOS" subtitulo="Gestión y seguimiento de novedades en CASOOK">
         <Link to="/casos/nuevo" className="boton boton--primario">
           <Plus size={18} /> NUEVA NOVEDAD
         </Link>
@@ -149,14 +155,14 @@ export default function Casos() {
                 style={{
                   position: 'absolute',
                   top: '0.75rem',
-                  right: '5rem',
+                  right: '5.5rem',
                   padding: '0.25rem 0.5rem',
                   fontSize: '0.75rem',
                   zIndex: 2,
                   background: 'var(--color-superficie)',
                 }}
                 onClick={(e) => abrirEdicion(e, caso)}
-                title="Editar reporte (permitido por estar abierto y ser su creador)"
+                title="Editar reporte (permitido por estar en proceso)"
               >
                 <Edit3 size={13} /> EDITAR
               </button>
@@ -190,7 +196,7 @@ export default function Casos() {
               </button>
             </div>
             <p className="texto-tenue" style={{ marginBottom: '1rem' }}>
-              REGLA DE NEGOCIO: CASO EN ESTADO ABIERTO Y MODIFICADO POR EL CREADOR ORIGINAL.
+              REGLA DE NEGOCIO: CASO EN ESTADO EN PROCESO Y MODIFICADO POR EL CREADOR ORIGINAL O SUPERUSUARIO.
             </p>
 
             <form className="formulario" onSubmit={guardarEdicion}>
@@ -286,7 +292,7 @@ export default function Casos() {
                 </div>
 
                 <div className="campo-grupo">
-                  <label className="campo-label">ÁREA</label>
+                  <label className="campo-label">ÁREA RESPONSABLE</label>
                   <select
                     className="campo-input"
                     value={formEdicion.area || ''}

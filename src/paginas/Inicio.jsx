@@ -11,6 +11,7 @@ import {
   Plus,
   FileText,
   Wrench,
+  CheckCircle2,
 } from 'lucide-react';
 import EncabezadoPagina from '../componentes/EncabezadoPagina';
 import TarjetaMetrica from '../componentes/TarjetaMetrica';
@@ -18,21 +19,33 @@ import TarjetaCaso from '../componentes/TarjetaCaso';
 import { useCasos } from '../contextos/ContextoCasos';
 import { useCatalogos } from '../contextos/ContextoCatalogos';
 import { useSesion } from '../contextos/ContextoSesion';
+import { useConfiguracion } from '../contextos/ContextoConfiguracion';
 import { etiquetasRol } from '../datos/datosDemo';
 import { puedeVerMetricasTerritoriales } from '../utilidades/permisos';
 import { diasDeAtraso } from '../utilidades/fechas';
+
+/**
+ * Inicio
+ * Panel de control principal de CASOOK.
+ * Muestra KPIs de casos activos (en proceso + por confirmar), casos vencidos, cerrados
+ * y la distribución territorial de incidencias.
+ */
 
 export default function Inicio() {
   const { casos } = useCasos();
   const { etapas, calles, lotes } = useCatalogos();
   const { usuario, usuarios } = useSesion();
+  const { nombreUrbanizacion } = useConfiguracion();
 
-  // Cálculo de Métricas KPI sobre los casos permitidos para este rol
+  // Cálculo de Métricas KPI: en_proceso, por_confirmar, cerrado
   const totalCasos = casos.length;
-  const activos = casos.filter((c) => c.estado === 'abierto' || c.estado === 'en_proceso').length;
-  const pendientes = casos.filter((c) => c.estado === 'abierto').length;
+  const enProceso = casos.filter((c) => c.estado === 'en_proceso').length;
   const porConfirmar = casos.filter((c) => c.estado === 'por_confirmar').length;
-  const vencidos = casos.filter((c) => c.esVencido || (c.estado !== 'cerrado' && diasDeAtraso(c.proximoSeguimiento) > 0)).length;
+  // Regla oficial de negocio: casos activos = en_proceso + por_confirmar
+  const activos = enProceso + porConfirmar;
+  const vencidos = casos.filter(
+    (c) => c.esVencido || (c.estado !== 'cerrado' && diasDeAtraso(c.proximoSeguimiento) > 0)
+  ).length;
   const cerrados = casos.filter((c) => c.estado === 'cerrado').length;
 
   const pendientesSeguimiento = [...casos]
@@ -55,7 +68,7 @@ export default function Inicio() {
     <div className="dashboard" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <EncabezadoPagina
         titulo="PANEL DE CONTROL GENERAL"
-        subtitulo="Quinde Control · Monitoreo y métricas en tiempo real"
+        subtitulo="CASOOK · Monitoreo y métricas operativas en tiempo real"
       >
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {esSuper && (
@@ -93,38 +106,40 @@ export default function Inicio() {
         )}
       </div>
 
-      {/* FILA 1: KPIS PRINCIPALES DE CASOS (Sincronizados con el rol) */}
+      {/* KPIS PRINCIPALES: SIN ESTADO ABIERTO */}
       <div>
         <h2 style={{ marginBottom: '0.5rem' }}>
           {esMantenimiento ? 'NOVEDADES ASIGNADAS A MANTENIMIENTO' : 'ESTADO GENERAL DE CASOS Y NOVEDADES'}
         </h2>
         <div className="kpi-grid">
           <TarjetaMetrica titulo="TOTAL CASOS" valor={totalCasos} icono={<Shield />} color="var(--color-primario)" />
-          <TarjetaMetrica titulo="CASOS ACTIVOS" valor={activos} icono={<Clock />} color="var(--color-info)" />
-          <TarjetaMetrica titulo="PENDIENTES" valor={pendientes} icono={<AlertTriangle />} color="var(--color-advertencia)" />
-          <TarjetaMetrica titulo="POR CONFIRMAR" valor={porConfirmar} icono={<CheckCircle />} color="var(--color-secundario)" />
+          <TarjetaMetrica titulo="CASOS ACTIVOS" valor={activos} icono={<Clock />} color="var(--color-info)" subtexto="EN PROCESO + POR CONFIRMAR" />
+          <TarjetaMetrica titulo="EN PROCESO" valor={enProceso} icono={<Clock />} color="var(--color-advertencia)" />
+          <TarjetaMetrica titulo="POR CONFIRMAR" valor={porConfirmar} icono={<CheckCircle2 />} color="var(--color-secundario)" />
           <TarjetaMetrica titulo="CASOS VENCIDOS" valor={vencidos} icono={<AlertTriangle />} color="var(--color-alerta)" destaca />
           <TarjetaMetrica titulo="CERRADOS" valor={cerrados} icono={<CheckCircle />} color="var(--color-resuelto)" />
         </div>
       </div>
 
-      {/* FILA 2: KPIS DE INVENTARIO Y CATÁLOGOS — EXCLUSIVO SUPERUSUARIO */}
+      {/* KPIS DE INVENTARIO Y CATÁLOGOS — EXCLUSIVO SUPERUSUARIO */}
       {mostrarTerritorial && (
         <>
           <div>
-            <h2 style={{ marginBottom: '0.5rem' }}>MÉTRICAS TERRITORIALES Y CATÁLOGOS (SUPERUSUARIO)</h2>
+            <h2 style={{ marginBottom: '0.5rem' }}>MÉTRICAS TERRITORIALES Y CATÁLOGOS</h2>
             <div className="kpi-grid">
-              <TarjetaMetrica titulo="USUARIOS SISTEMA" valor={usuarios.length} icono={<Users />} color="#11321d" subtexto="HABILITADOS" />
-              <TarjetaMetrica titulo="ETAPAS REGISTRADAS" valor={etapas.length} icono={<Layers />} color="#11321d" subtexto="ZONAS CATASTRADAS" />
-              <TarjetaMetrica titulo="CALLES REGISTRADAS" valor={calles.length} icono={<MapPin />} color="#11321d" subtexto="VÍAS URBANAS" />
-              <TarjetaMetrica titulo="LOTES CATASTRADOS" valor={lotes.length} icono={<FolderTree />} color="#11321d" subtexto="3000+ PREDIOS" />
+              <TarjetaMetrica titulo="USUARIOS" valor={usuarios.length} icono={<Users />} color="#11321d" subtexto="HABILITADOS" />
+              <TarjetaMetrica titulo="ETAPAS" valor={etapas.length} icono={<Layers />} color="#11321d" subtexto="CATÁLOGO ACTIVO" />
+              <TarjetaMetrica titulo="CALLES" valor={calles.length} icono={<MapPin />} color="#11321d" subtexto="VÍAS REGISTRADAS" />
+              <TarjetaMetrica titulo="LOTES" valor={lotes.length} icono={<FolderTree />} color="#11321d" subtexto="CÓDIGOS NUMERO.SUBLOTE" />
             </div>
           </div>
 
-          {/* RESUMEN POR ETAPAS CON BARRAS DE PROGRESO */}
+          {/* DISTRIBUCIÓN POR ETAPAS */}
           <div className="tarjeta seccion-etapas">
             <h3>DISTRIBUCIÓN DE INCIDENCIAS POR ETAPA</h3>
-            <p className="texto-tenue">Densidad territorial de novedades reportadas en la Urbanización El Condado.</p>
+            <p className="texto-tenue">
+              Densidad territorial de novedades reportadas en {nombreUrbanizacion || 'la urbanización'}.
+            </p>
             <div className="barras-etapas">
               {etapas.map((etapa) => {
                 const conteo = casos.filter((c) => c.etapa === etapa.nombre).length;

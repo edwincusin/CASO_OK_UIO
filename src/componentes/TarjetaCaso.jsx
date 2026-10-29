@@ -1,30 +1,35 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Clock, Camera, FileCheck } from 'lucide-react';
+import { MapPin, Clock, Camera, FileCheck, Timer } from 'lucide-react';
 import Insignia from './Insignia';
 import ModalVisorFoto from './ModalVisorFoto';
 import { estados } from '../datos/datosDemo';
 import { useCasos } from '../contextos/ContextoCasos';
-import { diasDeAtraso } from '../utilidades/fechas';
+import { diasDeAtraso, obtenerTiempoResolucion, formatearFechaHora } from '../utilidades/fechas';
 
+/**
+ * TarjetaCaso
+ * Visualización compacta de una novedad con sus tiempos de apertura y resolución.
+ */
 export default function TarjetaCaso({ caso }) {
   const { buscarPrioridad } = useCasos();
   const [fotoVisor, setFotoVisor] = useState(null);
 
   const prioridad = buscarPrioridad(caso.prioridad);
   const estado = estados[caso.estado] || {
-    nombre: (caso.estado || '').toUpperCase(),
+    nombre: (caso.estado || '').toUpperCase().replace('_', ' '),
     color: 'var(--color-borde)',
   };
 
   const diasAtraso = diasDeAtraso(caso.proximoSeguimiento);
   const estaAtrasado = caso.estado !== 'cerrado' && diasAtraso > 0;
+  const tiempoResolucion = obtenerTiempoResolucion(caso);
 
   const ubicacion =
     caso.etapa || caso.callePrimaria
       ? `${caso.etapa ? `${caso.etapa} · ` : ''}${caso.callePrimaria || ''}${caso.calleSecundaria ? ` Y ${caso.calleSecundaria}` : ''}`
-      : caso.lote
-      ? `LOTE ${caso.lote} · ${caso.calle}`
+      : caso.reportanteLote || caso.lote
+      ? `LOTE ${caso.reportanteLote || caso.lote} · ${caso.callePrimaria || caso.calle || 'PRINCIPAL'}`
       : caso.ubicacionTexto || 'SIN UBICACIÓN';
 
   function verFoto(e, urlFoto, titulo) {
@@ -41,16 +46,19 @@ export default function TarjetaCaso({ caso }) {
         style={{ borderLeftColor: prioridad.color }}
       >
         <div className="tarjeta__fila">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
             <span className="tarjeta__codigo">{caso.codigo}</span>
             {caso.etapa && (
               <span className="insignia-estado-activo" style={{ fontSize: '0.7rem' }}>
                 {caso.etapa}
               </span>
             )}
+            <span className="texto-tenue" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Timer size={13} /> {tiempoResolucion}
+            </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
             {caso.fotoInicial && (
               <button
                 type="button"

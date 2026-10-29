@@ -1,2 +1,3 @@
-@import "tailwindcss";
+@import "./estilos/variables.css";
 @import "./estilos/global.css";
+@import "./estilos/logo.css";

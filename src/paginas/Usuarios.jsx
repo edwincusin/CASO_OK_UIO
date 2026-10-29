@@ -125,7 +125,7 @@ export default function Usuarios() {
     <>
       <EncabezadoPagina
         titulo="GESTIÓN DE USUARIOS (SUPERUSUARIO)"
-        subtitulo="Quinde Control · Validación Módulo 10, paginación a 20 e inputs estrictos"
+        subtitulo="CASOOK · Validación Módulo 10, paginación a 20 e inputs estrictos"
       >
         <button className="boton boton--primario" onClick={abrirNuevo}>
           <Plus size={18} /> NUEVO USUARIO
