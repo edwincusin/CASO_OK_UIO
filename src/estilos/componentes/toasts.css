@@ -1,0 +1,121 @@
+/* ==========================================================================
+   TOASTS Y AVISOS FLOTANTES
+   Notificaciones temporales deslizantes con barra de progreso y colores semánticos.
+   ========================================================================== */
+
+.contenedor-toasts {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  pointer-events: none;
+  max-width: 400px;
+  width: calc(100% - 32px);
+}
+
+/* En móvil: fijado abajo */
+@media (max-width: 768px) {
+  .contenedor-toasts {
+    bottom: max(var(--espacio-4), env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+/* En escritorio: fijado arriba a la derecha */
+@media (min-width: 769px) {
+  .contenedor-toasts {
+    top: var(--espacio-4);
+    right: var(--espacio-4);
+  }
+}
+
+.toast {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  padding: var(--espacio-3) var(--espacio-4);
+  box-shadow: var(--sombra-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  pointer-events: auto;
+  animation: animacionEntradaToast 250ms var(--curva-suave) forwards;
+}
+
+@keyframes animacionEntradaToast {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast--salida {
+  animation: animacionSalidaToast 200ms ease-in forwards;
+}
+
+@keyframes animacionSalidaToast {
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+.toast__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast__mensaje {
+  font-size: var(--tamano-sm);
+  font-weight: 600;
+  color: var(--color-texto-principal);
+  flex: 1;
+}
+
+/* Variantes semánticas */
+.toast--exito {
+  border-left: 4px solid var(--color-exito);
+}
+.toast--exito .toast__icono {
+  color: var(--color-exito);
+}
+
+.toast--alerta, .toast--peligro {
+  border-left: 4px solid var(--color-peligro);
+}
+.toast--alerta .toast__icono, .toast--peligro .toast__icono {
+  color: var(--color-peligro);
+}
+
+.toast--info {
+  border-left: 4px solid var(--color-info);
+}
+.toast--info .toast__icono {
+  color: var(--color-info);
+}
+
+/* Barra de progreso de auto-cierre */
+.toast__barra-progreso {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--color-esmeralda-medio);
+  width: 100%;
+  animation: animacionBarraToast 3000ms linear forwards;
+}
+
+@keyframes animacionBarraToast {
+  from { width: 100%; }
+  to { width: 0%; }
+}

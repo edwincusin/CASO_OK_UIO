@@ -1,0 +1,152 @@
+/* ==========================================================================
+   ANIMACIONES CSS
+   Transiciones suaves, keyframes de alto rendimiento (transform y opacity)
+   y soporte para prefers-reduced-motion.
+   ========================================================================== */
+
+/* Entrada suave con elevación de 8px */
+@keyframes animacionSubida {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fundido simple */
+@keyframes animacionFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Despliegue de drawer móvil */
+@keyframes animacionDeslizarDrawer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Despliegue de modal con zoom sutil */
+@keyframes animacionModalEntrada {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Spinner de carga circular */
+@keyframes animacionGiro {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Sacudida para errores de formulario o login */
+@keyframes animacionShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20%, 60% {
+    transform: translateX(-6px);
+  }
+  40%, 80% {
+    transform: translateX(6px);
+  }
+}
+
+/* Efecto shimmer para skeletons */
+@keyframes animacionShimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Movimiento lento de esferas ambientales flotantes (Login futurista) */
+@keyframes animacionOrbeFlotante1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+}
+
+@keyframes animacionOrbeFlotante2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-25px, 25px) scale(0.94);
+  }
+}
+
+/* ===== CLASES UTILITARIAS DE ANIMACIÓN ===== */
+.animar-entrada {
+  animation: animacionSubida 300ms var(--curva-suave) forwards;
+}
+
+.animar-fade {
+  animation: animacionFadeIn 250ms ease-out forwards;
+}
+
+.animar-shake {
+  animation: animacionShake 350ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Entrada escalonada para listas y tarjetas con --i */
+.animar-escalonado {
+  animation: animacionSubida 320ms var(--curva-suave) backwards;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+/* Spinner CSS */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: animacionGiro 650ms linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.spinner--primario {
+  border-color: rgba(4, 120, 87, 0.2);
+  border-top-color: var(--color-esmeralda-medio);
+}
+
+/* Skeleton con shimmer */
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 37%, #e2e8f0 63%);
+  background-size: 400% 100%;
+  animation: animacionShimmer 1.4s ease infinite;
+  border-radius: var(--radio-sm);
+}
+
+/* Reducción de movimiento para usuarios que lo configuran */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

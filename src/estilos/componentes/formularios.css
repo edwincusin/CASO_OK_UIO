@@ -1,0 +1,368 @@
+/* ==========================================================================
+   FORMULARIOS Y CAMPOS DE ENTRADA
+   Estructura vertical limpia, zonas de carga accesibles, checkboxes personalizados
+   y grids responsivos para formularios de novedades.
+   ========================================================================== */
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+  width: 100%;
+}
+
+.formulario__seccion {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-5);
+  box-shadow: var(--sombra-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.formulario__seccion-titulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-esmeralda-oscuro);
+  border-bottom: 1px solid var(--color-borde-suave);
+  padding-bottom: var(--espacio-2);
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+/* ===== GRUPOS Y CAMPOS VERTICALES ===== */
+.campo-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  position: relative;
+}
+
+.campo-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  color: var(--color-texto-secundario);
+  letter-spacing: 0.02em;
+}
+
+.campo-requerido {
+  color: var(--color-peligro);
+  font-weight: 800;
+}
+
+/* ===== INPUTS, SELECTS Y TEXTAREAS ===== */
+.campo-input,
+.campo-select,
+.campo-textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--espacio-3);
+  background-color: var(--color-superficie);
+  color: var(--color-texto-principal);
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  font-size: var(--tamano-base);
+  transition: border-color var(--duracion-rapida) var(--curva-suave),
+              box-shadow var(--duracion-rapida) var(--curva-suave),
+              background var(--duracion-rapida) var(--curva-suave);
+}
+
+.campo-input:hover,
+.campo-select:hover,
+.campo-textarea:hover {
+  border-color: var(--color-borde-fuerte);
+}
+
+.campo-input:focus,
+.campo-select:focus,
+.campo-textarea:focus {
+  outline: none;
+  border-color: var(--color-esmeralda-medio);
+  box-shadow: var(--sombra-foco);
+  background-color: #ffffff;
+}
+
+.campo-textarea {
+  min-height: 120px;
+  padding: var(--espacio-3);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Selector estilizado */
+.campo-select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23334155' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Estados de Error y Válido */
+.campo-input--error,
+.campo-select--error,
+.campo-textarea--error {
+  border-color: var(--color-peligro) !important;
+  background-color: #fffafb;
+}
+
+.campo-input--error:focus,
+.campo-select--error:focus,
+.campo-textarea--error:focus {
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.25) !important;
+}
+
+.campo-mensaje-error {
+  color: var(--color-peligro);
+  font-size: var(--tamano-xs);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.campo-ayuda {
+  color: var(--color-texto-tenue);
+  font-size: var(--tamano-xs);
+  line-height: 1.4;
+}
+
+/* Input con icono contenedor */
+.campo-con-icono {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.campo-con-icono__icono {
+  position: absolute;
+  left: 14px;
+  color: var(--color-texto-tenue);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.campo-con-icono .campo-input {
+  padding-left: 42px;
+}
+
+/* ===== CARGA DE ARCHIVOS ACCESIBLE Y ESTILIZADA ===== */
+.zona-archivo {
+  display: block;
+  position: relative;
+  width: 100%;
+  cursor: pointer;
+}
+
+.zona-archivo__input-nativo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.zona-archivo__contenedor {
+  border: 2px dashed var(--color-borde-fuerte);
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-5);
+  background-color: var(--color-superficie);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  transition: all var(--duracion-rapida) var(--curva-suave);
+}
+
+.zona-archivo:hover .zona-archivo__contenedor,
+.zona-archivo:focus-within .zona-archivo__contenedor {
+  border-color: var(--color-esmeralda-medio);
+  background-color: var(--color-esmeralda-tenue);
+  box-shadow: var(--sombra-foco);
+}
+
+.zona-archivo__icono {
+  color: var(--color-esmeralda-medio);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zona-archivo__texto-principal {
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  color: var(--color-texto-principal);
+}
+
+.zona-archivo__texto-secundario {
+  font-size: var(--tamano-xs);
+  color: var(--color-texto-tenue);
+}
+
+.zona-archivo__vista-previa {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-2);
+  padding: var(--espacio-2) var(--espacio-3);
+  background: var(--color-borde-suave);
+  border-radius: var(--radio-md);
+  width: 100%;
+}
+
+.zona-archivo__miniatura {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radio-sm);
+  object-fit: cover;
+  border: 1px solid var(--color-borde);
+}
+
+.zona-archivo__nombre-archivo {
+  font-size: var(--tamano-xs);
+  font-weight: 600;
+  color: var(--color-texto-secundario);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+/* ===== CHECKBOX Y RADIO PERSONALIZADOS ===== */
+.control-seleccion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.control-seleccion__input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-borde-fuerte);
+  border-radius: 4px;
+  background-color: #ffffff;
+  cursor: pointer;
+  display: grid;
+  place-content: center;
+  transition: all var(--duracion-rapida) var(--curva-suave);
+}
+
+.control-seleccion__input:checked {
+  background-color: var(--color-esmeralda-medio);
+  border-color: var(--color-esmeralda-medio);
+}
+
+.control-seleccion__input:checked::before {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.control-seleccion__input[type="radio"] {
+  border-radius: 50%;
+}
+
+.control-seleccion__input[type="radio"]:checked::before {
+  width: 8px;
+  height: 8px;
+  border: none;
+  border-radius: 50%;
+  background-color: #ffffff;
+  transform: none;
+}
+
+.control-seleccion__input:focus-visible {
+  box-shadow: var(--sombra-foco);
+}
+
+.control-seleccion__etiqueta {
+  font-size: var(--tamano-sm);
+  color: var(--color-texto-secundario);
+}
+
+/* ===== GRIDS PARA FORMULARIOS ===== */
+.grid-formulario-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-4);
+}
+
+.grid-formulario-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-4);
+}
+
+@media (min-width: 640px) {
+  .grid-formulario-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .grid-formulario-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ===== AUTOCOMPLETE DROPDOWN ===== */
+.autocomplete-contenedor {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete-lista {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-md);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: var(--sombra-lg);
+  list-style: none;
+  margin-top: 4px;
+}
+
+.autocomplete-item {
+  padding: var(--espacio-2) var(--espacio-3);
+  cursor: pointer;
+  font-size: var(--tamano-sm);
+  border-bottom: 1px solid var(--color-borde-suave);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background var(--duracion-rapida) var(--curva-suave);
+}
+
+.autocomplete-item:hover {
+  background: var(--color-esmeralda-tenue);
+  color: var(--color-esmeralda-oscuro);
+}
+

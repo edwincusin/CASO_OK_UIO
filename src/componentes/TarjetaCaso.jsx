@@ -5,11 +5,12 @@ import Insignia from './Insignia';
 import ModalVisorFoto from './ModalVisorFoto';
 import { estados } from '../datos/datosDemo';
 import { useCasos } from '../contextos/ContextoCasos';
-import { diasDeAtraso, obtenerTiempoResolucion, formatearFechaHora } from '../utilidades/fechas';
+import { diasDeAtraso, obtenerTiempoResolucion } from '../utilidades/fechas';
 
 /**
  * TarjetaCaso
- * Visualización compacta de una novedad con sus tiempos de apertura y resolución.
+ * Visualización compacta de una novedad con elevación suave,
+ * borde de estado/prioridad y tiempos de atención.
  */
 export default function TarjetaCaso({ caso }) {
   const { buscarPrioridad } = useCasos();
@@ -27,10 +28,12 @@ export default function TarjetaCaso({ caso }) {
 
   const ubicacion =
     caso.etapa || caso.callePrimaria
-      ? `${caso.etapa ? `${caso.etapa} · ` : ''}${caso.callePrimaria || ''}${caso.calleSecundaria ? ` Y ${caso.calleSecundaria}` : ''}`
+      ? `${caso.etapa ? `${caso.etapa} · ` : ''}${caso.callePrimaria || ''}${
+          caso.calleSecundaria ? ` y ${caso.calleSecundaria}` : ''
+        }`
       : caso.reportanteLote || caso.lote
-      ? `LOTE ${caso.reportanteLote || caso.lote} · ${caso.callePrimaria || caso.calle || 'PRINCIPAL'}`
-      : caso.ubicacionTexto || 'SIN UBICACIÓN';
+      ? `Lote ${caso.reportanteLote || caso.lote} · ${caso.callePrimaria || caso.calle || 'Principal'}`
+      : caso.ubicacionTexto || 'Sin ubicación';
 
   function verFoto(e, urlFoto, titulo) {
     e.preventDefault();
@@ -38,66 +41,94 @@ export default function TarjetaCaso({ caso }) {
     setFotoVisor({ url: urlFoto, titulo });
   }
 
+  const estadoClase =
+    caso.estado === 'cerrado'
+      ? 'tarjeta-caso--cerrado'
+      : caso.estado === 'por_confirmar'
+      ? 'tarjeta-caso--confirmar'
+      : 'tarjeta-caso--proceso';
+
   return (
     <>
       <Link
         to={`/casos/${caso.id}`}
-        className={`tarjeta tarjeta--enlace ${estaAtrasado ? 'tarjeta--vencida' : ''}`}
-        style={{ borderLeftColor: prioridad.color }}
+        className={`tarjeta-caso ${estadoClase} ${estaAtrasado ? 'tarjeta-caso--vencida' : ''}`}
+        style={prioridad?.color ? { borderLeftColor: prioridad.color } : undefined}
       >
-        <div className="tarjeta__fila">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <span className="tarjeta__codigo">{caso.codigo}</span>
+        <div className="tarjeta-caso__fila-superior">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+            <span className="tarjeta-caso__codigo">{caso.codigo}</span>
             {caso.etapa && (
-              <span className="insignia-estado-activo" style={{ fontSize: '0.7rem' }}>
+              <span className="badge badge--activo" style={{ fontSize: '0.7rem' }}>
                 {caso.etapa}
               </span>
             )}
-            <span className="texto-tenue" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span
+              className="texto-tenue texto-mono"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+            >
               <Timer size={13} /> {tiempoResolucion}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
             {caso.fotoInicial && (
               <button
                 type="button"
-                className="boton boton--contorno"
-                style={{ padding: '0.15rem 0.4rem', fontSize: '0.72rem' }}
-                onClick={(e) => verFoto(e, caso.fotoInicial, `FOTO INICIAL: ${caso.codigo}`)}
-                title="Ver foto inicial"
+                className="boton boton--sm boton--secundario"
+                style={{ padding: '0 8px', minHeight: '30px' }}
+                onClick={(e) => verFoto(e, caso.fotoInicial, `Foto Inicial: ${caso.codigo}`)}
+                title="Ver evidencia inicial"
               >
-                <Camera size={13} /> FOTO
+                <Camera size={13} /> <span>Foto</span>
               </button>
             )}
             {caso.fotoFinal && (
               <button
                 type="button"
-                className="boton boton--secundario"
-                style={{ padding: '0.15rem 0.4rem', fontSize: '0.72rem' }}
-                onClick={(e) => verFoto(e, caso.fotoFinal, `FOTO CIERRE: ${caso.codigo}`)}
-                title="Ver foto final de cierre"
+                className="boton boton--sm boton--primario"
+                style={{ padding: '0 8px', minHeight: '30px' }}
+                onClick={(e) => verFoto(e, caso.fotoFinal, `Foto Cierre: ${caso.codigo}`)}
+                title="Ver evidencia de cierre"
               >
-                <FileCheck size={13} /> CIERRE
+                <FileCheck size={13} /> <span>Cierre</span>
               </button>
             )}
-            <Insignia texto={estado.nombre} color={estado.color} />
+            <Insignia
+              texto={estado.nombre}
+              variante={caso.estado}
+              color={estado.color}
+            />
           </div>
         </div>
 
-        <p className="tarjeta__descripcion">{caso.descripcion}</p>
+        <p className="tarjeta-caso__descripcion">{caso.descripcion}</p>
 
-        <div className="tarjeta__fila texto-tenue">
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+        <div className="tarjeta-caso__meta">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
             <MapPin size={14} /> {ubicacion}
           </span>
-          {estaAtrasado ? (
-            <span className="texto-alerta" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Clock size={14} /> {diasAtraso} DÍA(S) DE ATRASO
-            </span>
-          ) : (
-            <Insignia texto={prioridad.nombre} color={prioridad.color} />
-          )}
+          <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {estaAtrasado ? (
+              <span
+                style={{
+                  color: 'var(--color-peligro)',
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <Clock size={14} /> {diasAtraso} día(s) de atraso
+              </span>
+            ) : (
+              <Insignia
+                texto={prioridad.nombre}
+                variante={caso.prioridad}
+                color={prioridad.color}
+              />
+            )}
+          </div>
         </div>
       </Link>
 

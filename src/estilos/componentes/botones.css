@@ -1,0 +1,164 @@
+/* ==========================================================================
+   BOTONES
+   Componentes de botón interactivos, variantes, tamaños y estados.
+   ========================================================================== */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: 44px; /* Altura mínima táctil */
+  padding: 0 var(--espacio-4);
+  font-size: var(--tamano-base);
+  font-weight: 700;
+  border-radius: var(--radio-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  transition: transform var(--duracion-rapida) var(--curva-suave),
+              background var(--duracion-rapida) var(--curva-suave),
+              box-shadow var(--duracion-rapida) var(--curva-suave),
+              border-color var(--duracion-rapida) var(--curva-suave),
+              opacity var(--duracion-rapida) var(--curva-suave);
+}
+
+.boton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: var(--sombra-md);
+}
+
+.boton:active:not(:disabled) {
+  transform: translateY(1px) scale(0.98);
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ===== VARIANTES ===== */
+/* Primario: degradado verde esmeralda con brillo sutil */
+.boton--primario {
+  background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+  color: #ffffff;
+  border-color: #064e3b;
+  box-shadow: 0 2px 6px rgba(4, 120, 87, 0.25);
+}
+
+.boton--primario:hover:not(:disabled) {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.35);
+}
+
+/* Secundario: con contorno/borde limpio */
+.boton--secundario, .boton--contorno {
+  background: var(--color-superficie);
+  color: var(--color-texto-principal);
+  border-color: var(--color-borde);
+}
+
+.boton--secundario:hover:not(:disabled), .boton--contorno:hover:not(:disabled) {
+  background: var(--color-borde-suave);
+  border-color: var(--color-borde-fuerte);
+}
+
+/* Peligro: alertas o acciones destructivas */
+.boton--peligro, .boton--alerta {
+  background: var(--color-peligro);
+  color: #ffffff;
+  border-color: var(--color-peligro);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.25);
+}
+
+.boton--peligro:hover:not(:disabled), .boton--alerta:hover:not(:disabled) {
+  background: #b91c1c;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+}
+
+/* Fantasma: sin fondo ni borde visible hasta el hover */
+.boton--fantasma {
+  background: transparent;
+  color: var(--color-texto-secundario);
+  border-color: transparent;
+}
+
+.boton--fantasma:hover:not(:disabled) {
+  background: var(--color-borde-suave);
+  color: var(--color-texto-principal);
+}
+
+/* Éxito / WhatsApp / Resuelto */
+.boton--exito {
+  background: var(--color-exito);
+  color: #ffffff;
+}
+
+.boton--exito:hover:not(:disabled) {
+  background: #15803d;
+}
+
+/* Botón de solo icono */
+.boton--icono {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  padding: 0;
+  border-radius: var(--radio-md);
+}
+
+/* Botón pastilla (útil para WhatsApp o teléfono) */
+.boton--pastilla {
+  border-radius: var(--radio-full);
+  padding: 0 var(--espacio-4);
+  font-size: var(--tamano-sm);
+}
+
+/* ===== TAMAÑOS ===== */
+.boton--pequeno, .boton--sm {
+  min-height: 36px;
+  padding: 0 var(--espacio-3);
+  font-size: var(--tamano-sm);
+  border-radius: var(--radio-sm);
+}
+
+.boton--grande, .boton--lg {
+  min-height: 52px;
+  padding: 0 var(--espacio-5);
+  font-size: 1.05rem;
+  border-radius: var(--radio-lg);
+}
+
+.boton--completo {
+  width: 100%;
+}
+
+/* ===== ESTADO CARGANDO ===== */
+.boton--cargando {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.85;
+}
+
+/* ===== GRUPOS DE BOTONES ===== */
+.grupo-botones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .grupo-botones--apilado-movil {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .grupo-botones--apilado-movil .boton {
+    width: 100%;
+  }
+}

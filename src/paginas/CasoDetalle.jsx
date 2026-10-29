@@ -6,8 +6,6 @@ import {
   Check,
   CheckCircle2,
   Undo2,
-  FileCheck,
-  FileText,
   Phone,
   MapPin,
   Send,
@@ -16,10 +14,14 @@ import {
   Timer,
   Clock,
   Printer,
+  Camera,
+  CameraOff,
+  FileText,
+  Upload,
 } from 'lucide-react';
 import { FaWhatsapp } from 'react-icons/fa';
 import Insignia from '../componentes/Insignia';
-import VistaPreviaImagen from '../componentes/VistaPreviaImagen';
+import ModalVisorFoto from '../componentes/ModalVisorFoto';
 import { useCasos } from '../contextos/ContextoCasos';
 import { useSesion } from '../contextos/ContextoSesion';
 import { useConfiguracion } from '../contextos/ContextoConfiguracion';
@@ -28,7 +30,6 @@ import { estados } from '../datos/datosDemo';
 import {
   puedeAtenderCaso,
   puedeConfirmarCaso,
-  puedeDevolverAProceso,
   puedeAgregarSeguimiento,
 } from '../utilidades/permisos';
 import { generarTextoWhatsappV3, aMayusculas } from '../utilidades/texto';
@@ -43,14 +44,72 @@ import {
 import { exportarCasoAPDF } from '../utilidades/generadorPdf';
 
 /**
- * CasoDetalle
- * Pantalla completa de gestión del caso:
- * - Tiempos: Apertura, Cierre y Tiempo de Resolución ("En curso: X" si activo).
- * - Historial de notas con "tiempo desde apertura" y "tiempo desde la nota anterior".
- * - Botón "Imprimir PDF" para exportar el caso en A4 vertical con fotos e historial.
- * - Acción de "Devolver a proceso" con nota obligatoria para Superusuario y Administración.
+ * MiniaturaEvidencia
+ * Muestra la miniatura con aspect-ratio 1:1 y zoom al cursor.
+ * Si la imagen falla al cargar (onError), renderiza un recuadro de reemplazo
+ * con icono y texto "Sin imagen" en lugar de un marco roto.
  */
+function MiniaturaEvidencia({ src, titulo, alHacerClic }) {
+  const [errorCarga, setErrorCarga] = useState(false);
 
+  if (errorCarga || !src) {
+    return (
+      <div className="galeria-item galeria-item--fallback" title="Evidencia no disponible">
+        <CameraOff size={22} />
+        <span className="galeria-item__texto-fallback">Sin imagen</span>
+      </div>
+    );
+  }
+
+  const esUrlValida =
+    src.startsWith('data:') ||
+    src.startsWith('blob:') ||
+    src.startsWith('http') ||
+    src.startsWith('/');
+
+  if (!esUrlValida) {
+    return (
+      <div
+        className="galeria-item galeria-item--fallback"
+        onClick={alHacerClic}
+        title="Clic para ver detalle"
+      >
+        <Camera size={22} />
+        <span
+          className="galeria-item__texto-fallback"
+          style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        >
+          {src}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="galeria-item"
+      onClick={alHacerClic}
+      title="Clic para ampliar fotografía"
+    >
+      <img
+        src={src}
+        alt={titulo || 'Evidencia fotográfica'}
+        className="galeria-item__img"
+        onError={() => setErrorCarga(true)}
+      />
+    </div>
+  );
+}
+
+/**
+ * CasoDetalle
+ * Gestión y seguimiento del caso:
+ * - Cabecera con código, badges e impresión/WhatsApp.
+ * - Cuadrícula de 2 columnas con etiqueta pequeña arriba y valor grande debajo.
+ * - Botones de contacto telefónico y WhatsApp en pastilla.
+ * - Galería de evidencias con aspect-ratio y fallback contra imágenes rotas.
+ * - Historial vertical en línea de tiempo con autor, fecha y tiempos transcurridos.
+ */
 export default function CasoDetalle() {
   const { idCaso } = useParams();
   const { usuario } = useSesion();
@@ -63,14 +122,19 @@ export default function CasoDetalle() {
   const [textoNota, setTextoNota] = useState('');
   const [copiado, setCopiado] = useState(false);
   const [mensajeErrorDevolucion, setMensajeErrorDevolucion] = useState('');
+  const [fotoVisor, setFotoVisor] = useState(null);
 
   const caso = casos.find((c) => c.id === Number(idCaso));
   if (!caso) {
     return (
-      <div className="tarjeta vacio">
-        <p>NO SE ENCONTRÓ EL CASO SOLICITADO.</p>
-        <Link to="/casos" className="boton boton--contorno" style={{ marginTop: '1rem' }}>
-          VOLVER AL LISTADO
+      <div className="tarjeta estado-vacio">
+        <AlertCircle size={36} className="texto-tenue" />
+        <h2 className="estado-vacio__titulo">No se encontró el caso solicitado</h2>
+        <p className="estado-vacio__texto">
+          El código de caso no existe en el sistema o fue retirado.
+        </p>
+        <Link to="/casos" className="boton boton--primario">
+          Volver al listado de casos
         </Link>
       </div>
     );
@@ -91,13 +155,13 @@ export default function CasoDetalle() {
       navigator.clipboard.writeText(texto);
     }
     setCopiado(true);
-    mostrarToast('FORMATO OFICIAL WHATSAPP COPIADO AL PORTAPAPELES', 'exito');
+    mostrarToast('Formato oficial WhatsApp copiado al portapapeles', 'exito');
     setTimeout(() => setCopiado(false), 2500);
   }
 
   function imprimirPDF() {
     exportarCasoAPDF(caso, usuario, nombreUrbanizacion);
-    mostrarToast('REPORTE PDF DEL CASO GENERADO EXITOSAMENTE', 'exito');
+    mostrarToast('Reporte PDF del caso generado exitosamente', 'exito');
   }
 
   function marcarAtendido(e) {
@@ -112,7 +176,7 @@ export default function CasoDetalle() {
     );
     setFotoFinal(null);
     setNotaAtencion('');
-    mostrarToast('CASO MARCADO COMO ATENDIDO (PASÓ A POR CONFIRMAR)', 'exito');
+    mostrarToast('Caso marcado como atendido (pasó a Por Confirmar)', 'exito');
   }
 
   function confirmarSolucion() {
@@ -124,13 +188,15 @@ export default function CasoDetalle() {
       'cerrado'
     );
     setNotaAtencion('');
-    mostrarToast('CASO CERRADO Y CONFIRMADO EXITOSAMENTE', 'exito');
+    mostrarToast('Caso confirmado y cerrado exitosamente', 'exito');
   }
 
   function manejarDevolverCaso() {
     if (!notaAtencion.trim()) {
-      setMensajeErrorDevolucion('DEBE ESCRIBIR UNA NOTA EXPLICATIVA OBLIGATORIA PARA DEVOLVER EL CASO');
-      mostrarToast('ESCRIBA LA NOTA EXPLICATIVA OBLIGATORIA', 'alerta');
+      setMensajeErrorDevolucion(
+        'Debe escribir una nota explicativa obligatoria para devolver el caso a proceso'
+      );
+      mostrarToast('Escriba la nota explicativa obligatoria', 'alerta');
       return;
     }
 
@@ -138,7 +204,7 @@ export default function CasoDetalle() {
     if (res.exito) {
       setNotaAtencion('');
       setMensajeErrorDevolucion('');
-      mostrarToast('CASO DEVUELTO AL ESTADO EN PROCESO', 'info');
+      mostrarToast('Caso devuelto al estado En Proceso', 'info');
     } else {
       setMensajeErrorDevolucion(res.mensaje);
       mostrarToast(res.mensaje, 'alerta');
@@ -150,15 +216,12 @@ export default function CasoDetalle() {
     if (!textoNota.trim()) return;
     agregarSeguimiento(caso.id, usuario, 'nota', textoNota.trim());
     setTextoNota('');
-    mostrarToast('NOTA DE SEGUIMIENTO REGISTRADA', 'exito');
+    mostrarToast('Nota de seguimiento registrada', 'exito');
   }
 
-  // Cálculo de tiempos para el historial
-  // caso.seguimientos está ordenado del más nuevo al más antiguo: [nota3, nota2, nota1]
+  // Historial con tiempos
   const seguimientosConTiempos = (caso.seguimientos || []).map((seg, index, lista) => {
-    // La nota cronológicamente anterior es lista[index + 1]
     const notaAnterior = lista[index + 1];
-
     let tiempoDesdeApertura = null;
     let tiempoDesdeAnterior = null;
 
@@ -180,179 +243,278 @@ export default function CasoDetalle() {
   });
 
   return (
-    <div className="caso-detalle" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div className="detalle-caso">
       <Link
         to="/casos"
-        className="texto-tenue"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', alignSelf: 'flex-start' }}
+        className="boton boton--fantasma boton--sm"
+        style={{ alignSelf: 'flex-start' }}
       >
-        <ArrowLeft size={15} /> VOLVER AL LISTADO DE CASOS
+        <ArrowLeft size={16} />
+        <span>Volver a la lista de casos</span>
       </Link>
 
-      {/* Encabezado con código, estado, prioridad y botones de acción */}
-      <div className="encabezado-acciones">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
-          <h1 style={{ margin: 0 }}>{caso.codigo}</h1>
-          {caso.etapa && <span className="insignia-estado-activo">{caso.etapa}</span>}
-          <Insignia texto={estado.nombre} color={estado.color} />
-          <Insignia texto={`PRIORIDAD ${prioridad.nombre}`} color={prioridad.color} />
+      {/* 1. CABECERA DEL CASO */}
+      <section className="detalle-caso__cabecera">
+        <div className="detalle-caso__fila-superior">
+          <div className="detalle-caso__codigo-grupo">
+            <h1 className="detalle-caso__codigo">{caso.codigo}</h1>
+            {caso.etapa && <span className="badge badge--activo">{caso.etapa}</span>}
+            <Insignia
+              texto={estado.nombre}
+              variante={caso.estado}
+              color={estado.color}
+            />
+            <Insignia
+              texto={`Prioridad ${prioridad.nombre}`}
+              variante={caso.prioridad}
+              color={prioridad.color}
+            />
+          </div>
+
+          <div className="detalle-caso__acciones-cabecera">
+            <button
+              type="button"
+              className="boton boton--secundario"
+              onClick={imprimirPDF}
+              title="Descargar informe del caso en PDF A4"
+            >
+              <Printer size={16} />
+              <span>Imprimir PDF</span>
+            </button>
+            <button
+              type="button"
+              className="boton boton--primario"
+              onClick={copiarWhatsApp}
+              title="Copiar plantilla para WhatsApp"
+            >
+              {copiado ? <Check size={16} /> : <Copy size={16} />}
+              <span>{copiado ? 'Copiado' : 'Copiar para WhatsApp'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Acciones principales: WhatsApp e Imprimir PDF */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <button type="button" className="boton boton--contorno" onClick={imprimirPDF}>
-            <Printer size={16} /> IMPRIMIR PDF
-          </button>
-          <button type="button" className="boton boton--secundario" onClick={copiarWhatsApp}>
-            {copiado ? <Check size={16} /> : <Copy size={16} />} COPIAR PARA WHATSAPP
-          </button>
-        </div>
-      </div>
-
-      {/* Tarjeta de tiempos y control */}
-      <section className="tarjeta">
-        <div className="tarjeta__fila" style={{ gap: '0.75rem' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-            <span className="texto-tenue" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-              FECHA Y HORA DE APERTURA:
-            </span>
-            <strong>
+        {/* Tiempos de atención */}
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+            gap: '12px',
+            paddingTop: '12px',
+            borderTop: '1px solid var(--color-borde-suave)',
+          }}
+        >
+          <div className="dato-item">
+            <span className="dato-item__etiqueta">Apertura</span>
+            <span className="dato-item__valor texto-mono" style={{ fontSize: '0.92rem' }}>
               {caso.fechaHoraApertura
                 ? formatearFechaHora(caso.fechaHoraApertura)
                 : formatearFecha(caso.fechaRecepcion)}
-            </strong>
+            </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-            <span className="texto-tenue" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-              FECHA Y HORA DE CIERRE:
+          <div className="dato-item">
+            <span className="dato-item__etiqueta">Cierre definitivo</span>
+            <span className="dato-item__valor texto-mono" style={{ fontSize: '0.92rem' }}>
+              {caso.fechaHoraCierre ? formatearFechaHora(caso.fechaHoraCierre) : '— (En curso)'}
             </span>
-            <strong>
-              {caso.fechaHoraCierre
-                ? formatearFechaHora(caso.fechaHoraCierre)
-                : '—'}
-            </strong>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-            <span className="texto-tenue" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-              TIEMPO DE RESOLUCIÓN:
-            </span>
-            <span style={{ fontWeight: 800, color: caso.estado === 'cerrado' ? 'var(--color-resuelto)' : 'var(--color-info)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Timer size={15} /> {tiempoResolucion}
+          <div className="dato-item">
+            <span className="dato-item__etiqueta">Tiempo de resolución</span>
+            <span
+              className="dato-item__valor texto-mono"
+              style={{
+                fontSize: '0.92rem',
+                color:
+                  caso.estado === 'cerrado'
+                    ? 'var(--color-exito)'
+                    : 'var(--color-esmeralda-oscuro)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              <Timer size={14} /> {tiempoResolucion}
             </span>
           </div>
 
           {caso.proximoSeguimiento && caso.estado !== 'cerrado' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-              <span className="texto-tenue" style={{ fontSize: '0.75rem', fontWeight: 700 }}>
-                PRÓXIMO SEGUIMIENTO:
+            <div className="dato-item">
+              <span className="dato-item__etiqueta">Próximo seguimiento</span>
+              <span className="dato-item__valor texto-mono" style={{ fontSize: '0.92rem' }}>
+                {formatearFecha(caso.proximoSeguimiento)}
               </span>
-              <span>{formatearFecha(caso.proximoSeguimiento)}</span>
             </div>
           )}
         </div>
 
         {estaAtrasado && (
-          <p className="texto-alerta" style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <Clock size={15} /> SEGUIMIENTO VENCIDO HACE {diasDeAtraso(caso.proximoSeguimiento)} DÍA(S)
-          </p>
+          <div
+            style={{
+              background: 'var(--color-peligro-fondo)',
+              color: 'var(--color-peligro-texto)',
+              padding: '8px 12px',
+              borderRadius: '6px',
+              fontSize: '0.85rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            <Clock size={16} />
+            <span>Seguimiento vencido hace {diasDeAtraso(caso.proximoSeguimiento)} día(s)</span>
+          </div>
         )}
-
-        <div style={{ marginTop: '0.85rem', paddingTop: '0.75rem', borderTop: '1px solid var(--color-borde)' }}>
-          <span className="texto-tenue" style={{ fontSize: '0.78rem', fontWeight: 700 }}>
-            DESCRIPCIÓN DE LA NOVEDAD:
-          </span>
-          <p style={{ marginTop: '0.25rem', fontSize: '0.95rem', color: '#1e293b' }}>{caso.descripcion}</p>
-        </div>
       </section>
 
-      {/* DETALLES TERRITORIALES Y REPORTANTE */}
-      <section className="tarjeta datos">
-        <div>
-          <div className="datos__titulo">REPORTANTE</div>
-          <strong>{caso.reportanteNombre}</strong>{' '}
-          <span className="texto-tenue">({caso.reportanteTipo || 'PROPIETARIO'})</span>
+      {/* 2. CUADRÍCULA DE DATOS A 2 COLUMNAS (PROMPT B) */}
+      <section className="cuadricula-datos-2col">
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Reportante</span>
+          <div className="dato-item__valor">{caso.reportanteNombre}</div>
+          <span className="texto-tenue" style={{ fontSize: '0.78rem' }}>
+            Tipo: {caso.reportanteTipo || 'Propietario'}
+          </span>
         </div>
 
-        <div>
-          <div className="datos__titulo">LOTE DEL RESIDENTE</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Home size={15} />
-            <strong>{caso.reportanteLote || caso.lote || 'SIN LOTE'}</strong>
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Lote del residente</span>
+          <div
+            className="dato-item__valor"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <Home size={16} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span className="texto-mono">{caso.reportanteLote || caso.lote || 'Sin lote'}</span>
           </div>
         </div>
 
-        <div>
-          <div className="datos__titulo">CONTACTO TELEFÓNICO</div>
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Contacto telefónico</span>
           {caso.reportanteContacto ? (
-            <span className="acciones" style={{ alignItems: 'center', marginTop: '0.2rem' }}>
-              <a href={`tel:${caso.reportanteContacto}`} className="boton boton--contorno" style={{ padding: '0.3rem 0.6rem', fontSize: '0.82rem' }}>
-                <Phone size={14} /> {caso.reportanteContacto}
+            <div className="dato-item__acciones-contacto">
+              <a
+                href={`tel:${caso.reportanteContacto}`}
+                className="boton boton--sm boton--secundario boton--pastilla"
+              >
+                <Phone size={13} />
+                <span>{caso.reportanteContacto}</span>
               </a>
               <a
                 href={`https://wa.me/${telefonoWhatsapp}`}
                 target="_blank"
                 rel="noreferrer"
-                className="boton boton--contorno"
-                style={{ padding: '0.3rem 0.6rem', fontSize: '0.82rem', color: '#128C7E' }}
+                className="boton boton--sm boton--exito boton--pastilla"
               >
-                <FaWhatsapp /> WHATSAPP
+                <FaWhatsapp />
+                <span>WhatsApp</span>
               </a>
-            </span>
+            </div>
           ) : (
-            <span className="texto-tenue">SIN CONTACTO</span>
+            <span className="texto-tenue">Sin contacto telefónico</span>
           )}
         </div>
 
-        <div>
-          <div className="datos__titulo">UBICACIÓN EXACTA DE LA NOVEDAD</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <MapPin size={15} />
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Ubicación territorial de la novedad</span>
+          <div
+            className="dato-item__valor"
+            style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}
+          >
+            <MapPin
+              size={16}
+              style={{ color: 'var(--color-esmeralda-medio)', marginTop: '3px', flexShrink: 0 }}
+            />
             <span>
               {caso.etapa ? `${caso.etapa} · ` : ''}
-              {caso.callePrimaria || caso.calle || 'CALLE PRINCIPAL'}
-              {caso.calleSecundaria ? ` Y ${caso.calleSecundaria}` : ''}
+              {caso.callePrimaria || caso.calle || 'Calle Principal'}
+              {caso.calleSecundaria ? ` y ${caso.calleSecundaria}` : ''}
             </span>
           </div>
           {(caso.referenciaUbicacion || caso.ubicacionTexto) && (
-            <div className="texto-tenue" style={{ marginTop: '0.2rem' }}>
+            <span className="texto-tenue" style={{ fontSize: '0.8rem', marginTop: '2px' }}>
               Ref: {caso.referenciaUbicacion || caso.ubicacionTexto}
-            </div>
+            </span>
           )}
         </div>
 
-        <div>
-          <div className="datos__titulo">ÁREA RESPONSABLE Y CATEGORÍA</div>
-          <strong>{caso.area}</strong> · {caso.categoria}
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Área responsable y Categoría</span>
+          <div className="dato-item__valor">
+            <strong>{caso.area}</strong> · {caso.categoria}
+          </div>
         </div>
 
-        {/* EVIDENCIAS FOTOGRÁFICAS EN MINIATURA 80x80 */}
-        <div style={{ gridColumn: '1 / -1', borderTop: '1px solid var(--color-borde)', paddingTop: '0.75rem' }}>
-          <div className="datos__titulo" style={{ marginBottom: '0.5rem' }}>EVIDENCIAS FOTOGRÁFICAS (MINIATURAS AMPLIABLES)</div>
-          <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
-            <div>
-              <span className="texto-tenue" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'block', marginBottom: '0.2rem' }}>
+        <div className="dato-item dato-item--ancho-completo">
+          <span className="dato-item__etiqueta">Descripción detallada del caso</span>
+          <p
+            className="dato-item__valor"
+            style={{
+              fontSize: '0.95rem',
+              fontWeight: 400,
+              lineHeight: 1.6,
+              background: '#f8fafc',
+              padding: '12px 16px',
+              borderRadius: '8px',
+              border: '1px solid var(--color-borde-suave)',
+            }}
+          >
+            {caso.descripcion}
+          </p>
+        </div>
+
+        {/* 3. GALERÍA DE EVIDENCIAS EN GRID (PROMPT B) */}
+        <div
+          className="dato-item dato-item--ancho-completo"
+          style={{ paddingTop: '12px', borderTop: '1px solid var(--color-borde-suave)' }}
+        >
+          <span className="dato-item__etiqueta">Evidencias Fotográficas y Documentos</span>
+          <div className="galeria-evidencias" style={{ marginTop: '8px' }}>
+            {/* Foto inicial */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span className="texto-tenue" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
                 FOTO INICIAL
               </span>
-              <VistaPreviaImagen urlExistente={caso.fotoInicial} titulo={`FOTO INICIAL: ${caso.codigo}`} />
+              <MiniaturaEvidencia
+                src={caso.fotoInicial}
+                titulo={`Foto Inicial: ${caso.codigo}`}
+                alHacerClic={() =>
+                  setFotoVisor({ url: caso.fotoInicial, titulo: `Foto Inicial: ${caso.codigo}` })
+                }
+              />
             </div>
 
-            <div>
-              <span className="texto-tenue" style={{ fontWeight: 600, fontSize: '0.75rem', display: 'block', marginBottom: '0.2rem' }}>
+            {/* Foto final de cierre */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <span className="texto-tenue" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
                 FOTO FINAL DE CIERRE
               </span>
-              <VistaPreviaImagen urlExistente={caso.fotoFinal} titulo={`FOTO FINAL: ${caso.codigo}`} />
+              <MiniaturaEvidencia
+                src={caso.fotoFinal}
+                titulo={`Foto Final: ${caso.codigo}`}
+                alHacerClic={() =>
+                  setFotoVisor({ url: caso.fotoFinal, titulo: `Foto Final: ${caso.codigo}` })
+                }
+              />
             </div>
 
+            {/* Oficio PDF si existe */}
             {caso.pdfInicial && (
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <span className="texto-tenue" style={{ fontWeight: 600, fontSize: '0.75rem', marginBottom: '0.2rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <span className="texto-tenue" style={{ fontSize: '0.72rem', fontWeight: 700 }}>
                   OFICIO PDF
                 </span>
-                <div className="tarjeta" style={{ padding: '0.5rem 0.75rem', fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <FileText size={16} />
-                  <span>{caso.pdfInicial}</span>
+                <div
+                  className="galeria-item galeria-item--fallback"
+                  style={{ background: '#f8fafc', cursor: 'default' }}
+                >
+                  <FileText size={22} style={{ color: 'var(--color-esmeralda-medio)' }} />
+                  <span
+                    className="galeria-item__texto-fallback"
+                    style={{ fontSize: '0.68rem', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                  >
+                    {caso.pdfInicial}
+                  </span>
                 </div>
               </div>
             )}
@@ -360,141 +522,273 @@ export default function CasoDetalle() {
         </div>
       </section>
 
-      {/* FORMULARIO DE ATENCIÓN PARA OPERADORES Y MANTENIMIENTO */}
+      {/* 4. BLOQUES DE ACCIÓN CON ESTRUCTURA VERTICAL (PROMPT B) */}
       {puedeAtenderCaso(usuario, caso) && caso.estado === 'en_proceso' && (
-        <form onSubmit={marcarAtendido} className="tarjeta formulario" style={{ borderLeft: '5px solid var(--color-secundario)' }}>
-          <h3>MARCAR COMO ATENDIDO ({caso.area.toUpperCase()})</h3>
+        <form
+          onSubmit={marcarAtendido}
+          className="formulario__seccion tarjeta-accion"
+        >
+          <h2 className="formulario__seccion-titulo">
+            <CheckCircle2 size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>Marcar como atendido ({caso.area})</span>
+          </h2>
           <p className="texto-tenue">
-            La foto final de cierre es opcional para no bloquear el despacho rápido del personal de servicio.
+            La foto final de cierre es opcional para no demorar la entrega del personal operativo en territorio.
           </p>
-          <div className="campo">
-            <label htmlFor="fotoFinal">FOTO FINAL DE CIERRE (OPCIONAL)</label>
-            <input
-              id="fotoFinal"
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoFinal(e.target.files ? e.target.files[0] : null)}
-            />
+
+          {/* Campo de archivo estilizado según Prompt B */}
+          <div className="campo-grupo">
+            <span className="campo-label">Foto final de cierre (Opcional)</span>
+            <label className="zona-archivo" htmlFor="fotoFinal">
+              <input
+                id="fotoFinal"
+                type="file"
+                accept="image/*"
+                className="zona-archivo__input-nativo"
+                onChange={(e) => setFotoFinal(e.target.files ? e.target.files[0] : null)}
+              />
+              <div className="zona-archivo__contenedor">
+                <span className="zona-archivo__icono">
+                  <Upload size={22} />
+                </span>
+                <span className="zona-archivo__texto-principal">
+                  Seleccionar o arrastrar fotografía de cierre
+                </span>
+                <span className="zona-archivo__texto-secundario">
+                  Formatos JPG, PNG o WebP
+                </span>
+              </div>
+            </label>
             {fotoFinal && (
-              <VistaPreviaImagen archivo={fotoFinal} alEliminar={() => setFotoFinal(null)} titulo="FOTO FINAL" />
+              <div className="zona-archivo__vista-previa">
+                <img
+                  src={URL.createObjectURL(fotoFinal)}
+                  alt="Vista previa final"
+                  className="zona-archivo__miniatura"
+                />
+                <span className="zona-archivo__nombre-archivo">{fotoFinal.name}</span>
+                <button
+                  type="button"
+                  className="boton boton--sm boton--peligro"
+                  onClick={() => setFotoFinal(null)}
+                >
+                  Quitar
+                </button>
+              </div>
             )}
           </div>
-          <div className="campo">
-            <label htmlFor="notaAtencion">NOTA DE ATENCIÓN / TRABAJO REALIZADO</label>
+
+          <div className="campo-grupo">
+            <label className="campo-label" htmlFor="notaAtencion">
+              Nota de atención / Trabajo realizado
+            </label>
             <textarea
               id="notaAtencion"
-              rows={2}
-              placeholder="DETALLE EL TRABAJO REALIZADO PARA RESOLVER LA NOVEDAD..."
+              rows={3}
+              placeholder="Describa el trabajo realizado para resolver la novedad..."
               value={notaAtencion}
               onChange={(e) => setNotaAtencion(aMayusculas(e.target.value))}
+              className="campo-textarea"
             />
           </div>
-          <button type="submit" className="boton boton--primario" style={{ alignSelf: 'flex-start' }}>
-            <CheckCircle2 size={16} /> MARCAR COMO ATENDIDO (PASAR A POR CONFIRMAR)
+
+          <button
+            type="submit"
+            className="boton boton--primario"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <CheckCircle2 size={16} />
+            <span>Marcar como atendido (pasar a Por Confirmar)</span>
           </button>
         </form>
       )}
 
-      {/* CONFIRMACIÓN Y DEVOLUCIÓN PARA OPERADOR ADMIN Y SUPERUSUARIO */}
+      {/* Confirmación y Devolución para Administración y Superusuario */}
       {puedeConfirmarCaso(usuario, caso) && (
-        <div className="tarjeta formulario" style={{ borderLeft: '5px solid var(--color-resuelto)' }}>
-          <h3>CONFIRMACIÓN DE SOLUCIÓN</h3>
+        <div className="formulario__seccion tarjeta-accion" style={{ borderTopColor: 'var(--color-info)' }}>
+          <h2 className="formulario__seccion-titulo">
+            <CheckCircle2 size={18} style={{ color: 'var(--color-info)' }} />
+            <span>Confirmación de solución o devolución</span>
+          </h2>
           <p className="texto-tenue">
-            ESTE CASO FUE ATENDIDO Y ESPERA CONFIRMACIÓN DE ADMINISTRACIÓN O SUPERUSUARIO.
+            Este caso fue atendido en territorio y requiere validación antes de su cierre definitivo.
           </p>
 
-          <div className="campo">
-            <label>NOTA DE OBSERVACIÓN (OBLIGATORIA SI VA A DEVOLVER EL CASO)</label>
+          <div className="campo-grupo">
+            <label className="campo-label" htmlFor="notaObservacion">
+              Nota de observación (Obligatoria si va a devolver el caso a proceso)
+            </label>
             <textarea
-              rows={2}
-              placeholder="ESCRIBA OBSERVACIONES O DETALLES DE LA CONFIRMACIÓN/DEVOLUCIÓN..."
+              id="notaObservacion"
+              rows={3}
+              placeholder="Escriba observaciones de validación o el motivo de devolución..."
               value={notaAtencion}
               onChange={(e) => {
                 setNotaAtencion(aMayusculas(e.target.value));
                 if (mensajeErrorDevolucion) setMensajeErrorDevolucion('');
               }}
+              className="campo-textarea"
             />
+            {mensajeErrorDevolucion && (
+              <span className="campo-mensaje-error">
+                <AlertCircle size={14} />
+                <span>{mensajeErrorDevolucion}</span>
+              </span>
+            )}
           </div>
 
-          {mensajeErrorDevolucion && (
-            <div style={{ color: 'var(--color-alerta)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem' }}>
-              <AlertCircle size={16} />
-              <span>{mensajeErrorDevolucion}</span>
-            </div>
-          )}
-
-          <div className="acciones">
-            <button type="button" className="boton boton--primario" onClick={confirmarSolucion}>
-              <CheckCircle2 size={16} /> CONFIRMAR SOLUCIÓN (CERRAR CASO)
+          <div className="grupo-botones">
+            <button
+              type="button"
+              className="boton boton--primario"
+              onClick={confirmarSolucion}
+            >
+              <CheckCircle2 size={16} />
+              <span>Confirmar solución (Cerrar caso)</span>
             </button>
-            <button type="button" className="boton boton--alerta" onClick={manejarDevolverCaso}>
-              <Undo2 size={16} /> DEVOLVER A PROCESO CON NOTA
+            <button
+              type="button"
+              className="boton boton--peligro"
+              onClick={manejarDevolverCaso}
+            >
+              <Undo2 size={16} />
+              <span>Devolver a proceso con nota</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* AGREGAR NOTA DE SEGUIMIENTO GENERAL */}
+      {/* Agregar nota de seguimiento general */}
       {caso.estado !== 'cerrado' && puedeAgregarSeguimiento(usuario) && (
-        <form className="tarjeta formulario" onSubmit={guardarNotaSimple}>
-          <h3>AGREGAR NOTA DE SEGUIMIENTO</h3>
-          <div className="campo">
+        <form
+          className="formulario__seccion"
+          onSubmit={guardarNotaSimple}
+        >
+          <h2 className="formulario__seccion-titulo">
+            <Send size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>Agregar nota de seguimiento</span>
+          </h2>
+          <div className="campo-grupo">
             <textarea
               rows={2}
-              placeholder="REGISTRE UNA NOTA O SEGUIMIENTO AL CASO..."
+              placeholder="Registre un avance, observación o seguimiento del caso..."
               value={textoNota}
               onChange={(e) => setTextoNota(aMayusculas(e.target.value))}
+              className="campo-textarea"
             />
           </div>
-          <div className="acciones">
-            <button type="submit" className="boton boton--contorno">
-              <Send size={16} /> GUARDAR NOTA
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="boton boton--secundario"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Send size={16} />
+            <span>Guardar nota</span>
+          </button>
         </form>
       )}
 
-      {/* HISTORIAL DE SEGUIMIENTO CON TIEMPO TRANSCURRIDO */}
+      {/* 5. HISTORIAL VERTICAL EN LÍNEA DE TIEMPO (PROMPT B) */}
       <section className="tarjeta">
-        <h2>HISTORIAL DE SEGUIMIENTO Y TIEMPOS</h2>
-        {seguimientosConTiempos.length === 0 && (
-          <p className="texto-tenue">AÚN NO HAY SEGUIMIENTOS REGISTRADOS.</p>
-        )}
-        <ul className="linea-tiempo">
-          {seguimientosConTiempos.map((seg) => (
-            <li key={seg.id} className="linea-tiempo__item">
-              <div>
-                <strong>{seg.nota}</strong>
-              </div>
-              <div className="texto-tenue" style={{ marginTop: '0.2rem', display: 'flex', flexWrap: 'wrap', gap: '0.4rem', alignItems: 'center' }}>
-                <span>{seg.autor}</span>
-                <span>·</span>
-                <span>
-                  {seg.fechaHora ? formatearFechaHora(seg.fechaHora) : formatearFecha(seg.fecha)}
-                </span>
-                {seg.tipo && <span>· [{seg.tipo.toUpperCase()}]</span>}
+        <h2 className="tarjeta__titulo">
+          <Clock size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+          <span>Historial de seguimiento cronológico</span>
+        </h2>
 
-                {/* Tiempos transcurridos si existen */}
-                {seg.tiempoDesdeApertura && (
-                  <span style={{ color: 'var(--color-primario)', fontWeight: 600, background: '#f0fdf4', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                    Desde apertura: {seg.tiempoDesdeApertura}
-                  </span>
-                )}
-                {seg.tiempoDesdeAnterior && (
-                  <span style={{ color: '#475569', background: '#f1f5f9', padding: '0.1rem 0.4rem', borderRadius: '4px' }}>
-                    Desde nota anterior: {seg.tiempoDesdeAnterior}
-                  </span>
-                )}
-              </div>
-              {seg.foto && (
-                <div style={{ marginTop: '0.35rem' }}>
-                  <VistaPreviaImagen urlExistente={seg.foto} titulo={`EVIDENCIA ${seg.tipo || 'SEGUIMIENTO'}`} />
+        {seguimientosConTiempos.length === 0 ? (
+          <p className="texto-tenue">Aún no hay notas ni seguimientos registrados.</p>
+        ) : (
+          <ul className="linea-tiempo">
+            {seguimientosConTiempos.map((seg) => (
+              <li key={seg.id} className="linea-tiempo__item">
+                <span className="linea-tiempo__nodo" aria-hidden="true" />
+                <div className="linea-tiempo__tarjeta">
+                  <div className="linea-tiempo__meta">
+                    <span className="linea-tiempo__autor">{seg.autor}</span>
+                    <span className="linea-tiempo__fecha">
+                      {seg.fechaHora
+                        ? formatearFechaHora(seg.fechaHora)
+                        : formatearFecha(seg.fecha)}
+                    </span>
+                  </div>
+
+                  <p className="linea-tiempo__nota">{seg.nota}</p>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      flexWrap: 'wrap',
+                      marginTop: '4px',
+                    }}
+                  >
+                    {seg.tipo && (
+                      <span className="badge badge--activo" style={{ fontSize: '0.68rem' }}>
+                        {seg.tipo}
+                      </span>
+                    )}
+
+                    {seg.tiempoDesdeApertura && (
+                      <span
+                        className="texto-mono"
+                        style={{
+                          fontSize: '0.72rem',
+                          color: 'var(--color-esmeralda-medio)',
+                          background: 'var(--color-esmeralda-tenue)',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        Desde apertura: {seg.tiempoDesdeApertura}
+                      </span>
+                    )}
+
+                    {seg.tiempoDesdeAnterior && (
+                      <span
+                        className="texto-mono"
+                        style={{
+                          fontSize: '0.72rem',
+                          color: '#475569',
+                          background: '#f1f5f9',
+                          padding: '2px 6px',
+                          borderRadius: '4px',
+                        }}
+                      >
+                        Desde anterior: {seg.tiempoDesdeAnterior}
+                      </span>
+                    )}
+                  </div>
+
+                  {seg.foto && (
+                    <div style={{ marginTop: '8px', width: '80px' }}>
+                      <MiniaturaEvidencia
+                        src={seg.foto}
+                        titulo={`Evidencia ${seg.tipo || 'Seguimiento'}`}
+                        alHacerClic={() =>
+                          setFotoVisor({
+                            url: seg.foto,
+                            titulo: `Evidencia ${seg.tipo || 'Seguimiento'}`,
+                          })
+                        }
+                      />
+                    </div>
+                  )}
                 </div>
-              )}
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
+
+      {/* Visor de foto en pantalla completa */}
+      {fotoVisor && (
+        <ModalVisorFoto
+          url={fotoVisor.url}
+          titulo={fotoVisor.titulo}
+          alCerrar={() => setFotoVisor(null)}
+        />
+      )}
     </div>
   );
 }

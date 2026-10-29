@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { Building2, Save, CheckCircle } from 'lucide-react';
+import { Building2, Save } from 'lucide-react';
 import EncabezadoPagina from '../componentes/EncabezadoPagina';
 import Insignia from '../componentes/Insignia';
 import BannerUrbanizacion from '../componentes/BannerUrbanizacion';
@@ -13,11 +13,10 @@ import { puedeVerConfiguracion } from '../utilidades/permisos';
 
 /**
  * Configuracion
- * Pantalla de configuración del sistema accesible exclusivamente para Superusuario.
- * Permite cambiar el nombre de la urbanización con validación de 3 a 60 caracteres y vista previa en vivo.
- * Permite además configurar los plazos en días de las prioridades de atención.
+ * Configuración institucional del sistema (Superusuario):
+ * - Nombre de la urbanización con validación (3 a 60 caracteres) y vista previa en vivo.
+ * - Plazos en días para cada nivel de prioridad.
  */
-
 export default function Configuracion() {
   const { usuario } = useSesion();
   const { prioridades, cambiarPlazoPrioridad } = useCasos();
@@ -34,46 +33,46 @@ export default function Configuracion() {
     const limpio = (nombreForm || '').trim();
 
     if (limpio.length < 3 || limpio.length > 60) {
-      setErrorNombre('EL NOMBRE DEBE TENER ENTRE 3 Y 60 CARACTERES');
-      mostrarToast('EL NOMBRE DEBE TENER ENTRE 3 Y 60 CARACTERES', 'alerta');
+      setErrorNombre('El nombre debe tener entre 3 y 60 caracteres');
+      mostrarToast('El nombre debe tener entre 3 y 60 caracteres', 'alerta');
       return;
     }
 
     try {
       guardarNombreUrbanizacion(limpio);
       setErrorNombre('');
-      mostrarToast('NOMBRE DE LA URBANIZACIÓN ACTUALIZADO CON ÉXITO', 'exito');
+      mostrarToast('Nombre de la urbanización actualizado con éxito', 'exito');
     } catch (err) {
-      setErrorNombre(err.message || 'ERROR AL GUARDAR');
-      mostrarToast(err.message || 'ERROR AL GUARDAR', 'alerta');
+      setErrorNombre(err.message || 'Error al guardar');
+      mostrarToast(err.message || 'Error al guardar', 'alerta');
     }
   }
 
   function manejarCambioPlazo(id, valor) {
     cambiarPlazoPrioridad(id, valor);
-    mostrarToast(`PLAZO ACTUALIZADO A ${valor} DÍA(S)`, 'info');
+    mostrarToast(`Plazo actualizado a ${valor} día(s)`, 'info');
   }
 
   return (
-    <>
+    <div className="pagina-configuracion">
       <EncabezadoPagina
-        titulo="CONFIGURACIÓN DEL SISTEMA"
-        subtitulo="CASOOK · Identidad institucional y parámetros operativos de seguimiento"
+        titulo="Configuración del Sistema"
+        subtitulo="Identidad institucional de la urbanización y parámetros operativos de seguimiento"
       />
 
-      {/* SECCIÓN 1: NOMBRE DE LA URBANIZACIÓN CON VISTA PREVIA EN VIVO */}
-      <section className="tarjeta formulario" style={{ marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Building2 size={20} style={{ color: 'var(--color-primario)' }} />
-          <h2>IDENTIDAD DE LA URBANIZACIÓN</h2>
-        </div>
+      {/* SECCIÓN 1: NOMBRE DE LA URBANIZACIÓN */}
+      <section className="formulario__seccion">
+        <h2 className="formulario__seccion-titulo">
+          <Building2 size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+          <span>Identidad de la Urbanización</span>
+        </h2>
         <p className="texto-tenue">
-          ESTE NOMBRE SE REFLEJA DE INMEDIATO EN LA CABECERA PRINCIPAL, REPORTES PDF, MENSAJES DE WHATSAPP Y PIE DE PÁGINA.
+          Este nombre se refleja dinámicamente en la cabecera con desenfoque, reportes PDF y formatos de exportación.
         </p>
 
-        <form onSubmit={guardarUrbanizacion} className="formulario" style={{ maxWidth: '650px', marginTop: '0.5rem' }}>
+        <form onSubmit={guardarUrbanizacion} className="formulario" style={{ maxWidth: '650px' }}>
           <CampoEntrada
-            label="NOMBRE DE LA URBANIZACIÓN (3 A 60 CARACTERES)"
+            label="Nombre de la Urbanización (3 a 60 caracteres)"
             requerido
             valor={nombreForm}
             onChange={(e) => {
@@ -81,68 +80,93 @@ export default function Configuracion() {
               if (errorNombre) setErrorNombre('');
             }}
             error={errorNombre}
-            placeholder="EJ: URBANIZACIÓN EL CONDADO, CONJUNTO RESIDENCIAL LOS QUINDES"
+            placeholder="Ej: Urbanización El Condado, Los Quindes"
             maxlength={60}
           />
 
           {/* VISTA PREVIA EN VIVO */}
-          <div style={{ background: '#f8fafc', border: '1px dashed var(--color-borde)', borderRadius: 'var(--radio)', padding: '0.85rem' }}>
-            <span className="texto-tenue" style={{ fontSize: '0.75rem', fontWeight: 700, display: 'block', marginBottom: '0.35rem' }}>
-              VISTA PREVIA EN VIVO DEL BANNER DORADO:
+          <div
+            style={{
+              background: '#f8fafc',
+              border: '1.5px dashed var(--color-borde)',
+              borderRadius: 'var(--radio-md)',
+              padding: '16px',
+            }}
+          >
+            <span
+              className="texto-kicker"
+              style={{ display: 'block', marginBottom: '8px' }}
+            >
+              Vista Previa en Vivo:
             </span>
-            <div style={{ background: '#0e2918', borderRadius: '8px', padding: '0.5rem' }}>
-              <div className="banner-urbanizacion" style={{ padding: '0.5rem 0' }}>
-                <span className="banner-urbanizacion__linea" aria-hidden="true" />
-                <span className="banner-urbanizacion__texto">
-                  {(nombreForm.trim() || 'NOMBRE DE LA URBANIZACIÓN').toUpperCase()}
-                </span>
-                <span className="banner-urbanizacion__linea" aria-hidden="true" />
-              </div>
+            <div
+              style={{
+                background: '#092f20',
+                borderRadius: '8px',
+                padding: '8px',
+              }}
+            >
+              <BannerUrbanizacion />
             </div>
           </div>
 
-          <button type="submit" className="boton boton--primario" style={{ alignSelf: 'flex-start' }}>
-            <Save size={16} /> GUARDAR NOMBRE DE URBANIZACIÓN
+          <button
+            type="submit"
+            className="boton boton--primario"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Save size={16} />
+            <span>Guardar Nombre de Urbanización</span>
           </button>
         </form>
       </section>
 
-      {/* SECCIÓN 2: PRIORIDADES Y PLAZOS DE SEGUIMIENTO */}
-      <section className="tarjeta formulario">
-        <h2>PRIORIDADES Y PLAZOS DE ATENCIÓN</h2>
+      {/* SECCIÓN 2: PRIORIDADES Y PLAZOS */}
+      <section className="formulario__seccion">
+        <h2 className="formulario__seccion-titulo">
+          <span>Prioridades y Plazos de Atención</span>
+        </h2>
         <p className="texto-tenue">
-          ESTABLECE CADA CUÁNTOS DÍAS HAY QUE DAR SEGUIMIENTO OBLIGATORIO A UN CASO SEGÚN SU NIVEL DE PRIORIDAD.
+          Establece los días de plazo para el seguimiento obligatorio de cada novedad según su urgencia.
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '8px' }}>
           {prioridades.map((prioridad) => (
             <div
               key={prioridad.id}
-              className="tarjeta__fila"
               style={{
-                padding: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
                 border: '1px solid var(--color-borde)',
-                borderRadius: 'var(--radio)',
+                borderRadius: 'var(--radio-md)',
                 background: 'var(--color-superficie)',
+                flexWrap: 'wrap',
+                gap: '8px',
               }}
             >
-              <Insignia texto={prioridad.nombre} color={prioridad.color} />
-              <div className="campo campo--horizontal" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Insignia
+                texto={prioridad.nombre}
+                variante={prioridad.id}
+                color={prioridad.color}
+              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
                   type="number"
                   min="0"
                   max="90"
-                  className="campo-input"
-                  style={{ width: '5.5rem', textAlign: 'center' }}
+                  className="campo-input texto-mono"
+                  style={{ width: '80px', textAlign: 'center' }}
                   value={prioridad.plazoDias}
                   onChange={(e) => manejarCambioPlazo(prioridad.id, Number(e.target.value))}
                 />
-                <span className="texto-tenue">DÍA(S) DE PLAZO PARA ATENCIÓN</span>
+                <span className="texto-tenue">días de plazo para atención</span>
               </div>
             </div>
           ))}
         </div>
       </section>
-    </>
+    </div>
   );
 }

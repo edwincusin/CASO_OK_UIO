@@ -1,3 +1,36 @@
+/* ==========================================================================
+   ÍNDICE GENERAL DE ESTILOS CSS3 - QUINDE CONTROL / CASOOK
+   Arquitectura modular pura sin dependencias de Tailwind ni frameworks externos.
+   ========================================================================== */
+
+/* 1. Variables y Tokens del Sistema de Diseño */
 @import "./estilos/variables.css";
-@import "./estilos/global.css";
+
+/* 2. Reset Moderno */
+@import "./estilos/reset.css";
+
+/* 3. Base Tipográfica y Accesibilidad */
+@import "./estilos/base.css";
+
+/* 4. Layout con Menú Fijo y Cabecera Sticky con Desenfoque */
+@import "./estilos/layout.css";
+
+/* 5. Componentes */
 @import "./estilos/logo.css";
+@import "./estilos/componentes/botones.css";
+@import "./estilos/componentes/formularios.css";
+@import "./estilos/componentes/tarjetas.css";
+@import "./estilos/componentes/badges.css";
+@import "./estilos/componentes/tablas.css";
+@import "./estilos/componentes/modales.css";
+@import "./estilos/componentes/toasts.css";
+
+/* 6. Páginas Específicas */
+@import "./estilos/paginas/login.css";
+@import "./estilos/paginas/inicio.css";
+@import "./estilos/paginas/casos.css";
+@import "./estilos/paginas/caso-detalle.css";
+@import "./estilos/paginas/administracion.css";
+
+/* 7. Animaciones y Clases Utilitarias */
+@import "./estilos/animaciones.css";

@@ -1,0 +1,89 @@
+/* ==========================================================================
+   PÁGINA DE CASOS / LISTADO Y FILTROS
+   Barra compacta de filtros, vista en tarjetas o tablas con data-label.
+   ========================================================================== */
+
+.pagina-casos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.barra-filtros {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-4);
+  box-shadow: var(--sombra-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.barra-filtros__busqueda {
+  position: relative;
+  width: 100%;
+}
+
+.barra-filtros__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 640px) {
+  .barra-filtros__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .barra-filtros__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.casos-vistas-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-borde-suave);
+  padding: 4px;
+  border-radius: var(--radio-md);
+}
+
+.casos-vistas-toggle__btn {
+  padding: 6px 12px;
+  border-radius: var(--radio-sm);
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  color: var(--color-texto-secundario);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all var(--duracion-rapida) var(--curva-suave);
+}
+
+.casos-vistas-toggle__btn--activo {
+  background: var(--color-superficie);
+  color: var(--color-esmeralda-oscuro);
+  box-shadow: var(--sombra-sm);
+}
+
+.casos-cuadricula-tarjetas {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--espacio-3);
+}
+
+@media (min-width: 768px) {
+  .casos-cuadricula-tarjetas {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .casos-cuadricula-tarjetas {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

@@ -3,28 +3,36 @@ import { CheckCircle2, AlertCircle, Info } from 'lucide-react';
 
 const ContextoToast = createContext(null);
 
+/**
+ * ProveedorToast
+ * Notificaciones efímeras accesibles con barra de progreso animada
+ * y posicionamiento responsive (abajo en móvil, arriba derecha en escritorio).
+ */
 export function ProveedorToast({ children }) {
   const [toast, setToast] = useState(null);
 
   const mostrarToast = useCallback((mensaje, tipo = 'exito') => {
-    const textoMayusculas = String(mensaje || '').toUpperCase();
-    setToast({ mensaje: textoMayusculas, tipo });
+    const textoMensaje = String(mensaje || '');
+    setToast({ mensaje: textoMensaje, tipo });
 
     setTimeout(() => {
-      setToast((actual) => (actual?.mensaje === textoMayusculas ? null : actual));
-    }, 3000); // Duración fija de 3 segundos
+      setToast((actual) => (actual?.mensaje === textoMensaje ? null : actual));
+    }, 3000);
   }, []);
 
   return (
     <ContextoToast.Provider value={{ mostrarToast }}>
       {children}
       {toast && (
-        <div className="toast-contenedor">
+        <div className="contenedor-toasts toast-contenedor" role="status" aria-live="polite">
           <div className={`toast toast--${toast.tipo}`}>
-            {toast.tipo === 'exito' && <CheckCircle2 size={18} />}
-            {toast.tipo === 'alerta' && <AlertCircle size={18} />}
-            {toast.tipo === 'info' && <Info size={18} />}
-            <span>{toast.mensaje}</span>
+            <span className="toast__icono" aria-hidden="true">
+              {toast.tipo === 'exito' && <CheckCircle2 size={18} />}
+              {toast.tipo === 'alerta' && <AlertCircle size={18} />}
+              {toast.tipo === 'info' && <Info size={18} />}
+            </span>
+            <span className="toast__mensaje">{toast.mensaje}</span>
+            <span className="toast__barra-progreso" aria-hidden="true" />
           </div>
         </div>
       )}
@@ -32,4 +40,5 @@ export function ProveedorToast({ children }) {
   );
 }
 
-export const useToast = () => useContext(ContextoToast) || { mostrarToast: () => {} };
+export const useToast = () =>
+  useContext(ContextoToast) || { mostrarToast: () => {} };

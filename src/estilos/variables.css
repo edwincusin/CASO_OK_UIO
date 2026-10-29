@@ -1,35 +1,129 @@
-:root {
-  /* Paleta Verde Esmeralda Quinde Control (v4.0) */
-  --color-primario: #11321d;        /* Verde Oscuro Elegante */
-  --color-primario-hover: #1b4b2c;
-  --color-secundario: #2a8c4b;      /* Verde Esmeralda */
-  --color-secundario-claro: #a3e4b0;
-  --color-acento-oscuro: #0f172a;   /* Azul/Gris Noche para paneles */
+/* ==========================================================================
+   VARIABLES DE DISEÑO - QUINDE CONTROL / CASOOK
+   Sistema de diseño futurista con paleta esmeralda, acentos dorados y proporciones áureas.
+   ========================================================================== */
 
-  /* Fondos y Superficies */
+:root {
+  /* ===== COLORES DE MARCA ===== */
+  --color-esmeralda-oscuro: #064e3b;
+  --color-esmeralda-profundo: #022c22;
+  --color-esmeralda-medio: #047857;
+  --color-esmeralda-brillante: #10b981;
+  --color-esmeralda-claro: #a7f3d0;
+  --color-esmeralda-tenue: #ecfdf5;
+
+  /* Acento dorado futurista */
+  --color-dorado: #facc15;
+  --color-dorado-hover: #eab308;
+  --color-dorado-brillo: rgba(250, 204, 21, 0.35);
+
+  /* Neutros para superficies limpias */
   --color-fondo: #f8fafc;
   --color-superficie: #ffffff;
-  --color-tarjeta: #ffffff;
+  --color-superficie-elevada: #ffffff;
   --color-borde: #e2e8f0;
+  --color-borde-suave: #f1f5f9;
+  --color-borde-fuerte: #cbd5e1;
 
-  /* Textos y Estados */
-  --color-texto: #0f172a;
-  --color-texto-suave: #334155;
-  --color-texto-mutado: #64748b;
+  /* Textos con excelente contraste (WCAG AA) */
+  --color-texto-principal: #0f172a;
+  --color-texto-secundario: #334155;
   --color-texto-tenue: #64748b;
-  --color-error: #dc2626;          /* Rojo para alertas inline */
-  --color-alerta: #dc2626;
-  --color-alerta-fondo: #fef2f2;
+  --color-texto-inverso: #ffffff;
+
+  /* ===== COLORES SEMÁNTICOS (Fuerte y Suave) ===== */
   --color-exito: #16a34a;
+  --color-exito-fondo: #dcfce7;
+  --color-exito-texto: #14532d;
+
   --color-advertencia: #d97706;
-  --color-info: #1dab78;
+  --color-advertencia-fondo: #fef3c7;
+  --color-advertencia-texto: #78350f;
+
+  --color-peligro: #dc2626;
+  --color-peligro-fondo: #fee2e2;
+  --color-peligro-texto: #7f1d1d;
+
+  --color-info: #0284c7;
+  --color-info-fondo: #e0f2fe;
+  --color-info-texto: #0c4a6e;
+
+  /* Estados de caso */
+  --color-estado-proceso: #0284c7;
+  --color-estado-proceso-fondo: #e0f2fe;
+  --color-estado-confirmar: #d97706;
+  --color-estado-confirmar-fondo: #fef3c7;
+  --color-estado-cerrado: #16a34a;
+  --color-estado-cerrado-fondo: #dcfce7;
+
+  /* Prioridades */
+  --color-prioridad-urgente: #dc2626;
+  --color-prioridad-urgente-fondo: #fee2e2;
+  --color-prioridad-alta: #ea580c;
+  --color-prioridad-alta-fondo: #ffedd5;
+  --color-prioridad-media: #ca8a04;
+  --color-prioridad-media-fondo: #fef9c3;
+  --color-prioridad-baja: #64748b;
+  --color-prioridad-baja-fondo: #f1f5f9;
+
+  /* Compatibilidad con variables previas */
+  --color-primario: var(--color-esmeralda-oscuro);
+  --color-primario-hover: var(--color-esmeralda-medio);
+  --color-secundario: var(--color-esmeralda-medio);
+  --color-secundario-claro: var(--color-esmeralda-claro);
+  --color-acento-oscuro: #071911;
+  --color-tarjeta: var(--color-superficie);
+  --color-texto: var(--color-texto-principal);
+  --color-texto-suave: var(--color-texto-secundario);
+  --color-texto-mutado: var(--color-texto-tenue);
+  --color-error: var(--color-peligro);
+  --color-alerta: var(--color-peligro);
+  --color-alerta-fondo: var(--color-peligro-fondo);
   --color-resuelto: #0056b3;
 
-  /* Medidas y Sombras */
-  --espacio-1: 0.5rem;
-  --espacio-2: 1rem;
-  --espacio-3: 1.5rem;
-  --radio: 10px;
-  --sombra: 0 1px 3px rgba(15, 23, 42, 0.08);
-  --sombra-tarjeta: 0 4px 6px -1px rgba(15, 23, 42, 0.08);
+  /* ===== ESCALA DE ESPACIADOS (px) ===== */
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-3: 12px;
+  --espacio-4: 16px;
+  --espacio-5: 24px;
+  --espacio-6: 32px;
+  --espacio-7: 48px;
+
+  /* ===== RADIOS DE BORDE ===== */
+  --radio-sm: 6px;
+  --radio-md: 10px;
+  --radio-lg: 16px;
+  --radio-full: 999px;
+  --radio: var(--radio-md);
+
+  /* ===== SOMBRAS Y ELEVACIÓN ===== */
+  --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --sombra-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --sombra-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.08);
+  --sombra-foco: 0 0 0 3px var(--color-dorado-brillo);
+  --sombra-foco-verde: 0 0 0 3px rgba(4, 120, 87, 0.25);
+  --sombra: var(--sombra-sm);
+  --sombra-tarjeta: var(--sombra-md);
+
+  /* ===== TIPOGRAFÍA DEL SISTEMA ===== */
+  --fuente-sistema: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --fuente-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --tamano-titulo: clamp(1.35rem, 2.5vw, 1.85rem);
+  --tamano-subtitulo: clamp(1.05rem, 1.8vw, 1.35rem);
+  --tamano-seccion: 1rem;
+  --tamano-base: 0.9375rem;
+  --tamano-sm: 0.8125rem;
+  --tamano-xs: 0.72rem;
+
+  /* ===== TRANSICIONES Y TIEMPOS ===== */
+  --duracion-rapida: 150ms;
+  --duracion-normal: 250ms;
+  --duracion-lenta: 400ms;
+  --curva-suave: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ===== DIMENSIONES DE LAYOUT ===== */
+  --ancho-menu: 260px;
+  --alto-cabecera: 64px;
 }

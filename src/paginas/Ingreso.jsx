@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn } from 'lucide-react';
+import { LogIn, CreditCard, Lock, AlertCircle } from 'lucide-react';
 import LogoCasoOK from '../componentes/LogoCasoOK';
 import BannerUrbanizacion from '../componentes/BannerUrbanizacion';
 import CampoEntrada from '../componentes/CampoEntrada';
@@ -11,11 +11,11 @@ import { soloNumeros } from '../utilidades/validaciones';
 
 /**
  * Ingreso
- * Pantalla de inicio de sesión de CASOOK.
- * Muestra el banner dorado de la urbanización arriba y exactamente las dos líneas de marca:
+ * Pantalla de inicio de sesión futurista con degradado verde esmeralda profundo,
+ * orbes luminosos ambientales animados, tarjeta glassmorphism, logo CASOOK,
+ * y las dos líneas reglamentarias de marca:
  * "Cada caso bajo control." y "SISTEMA INTERNO DE GESTIÓN Y SEGUIMIENTO".
  */
-
 export default function Ingreso() {
   const { iniciarSesionConCredenciales, iniciarSesionRapida, usuarios } = useSesion();
   const { mostrarToast } = useToast();
@@ -24,41 +24,54 @@ export default function Ingreso() {
   const [cedula, setCedula] = useState('');
   const [password, setPassword] = useState('');
   const [errores, setErrores] = useState({});
+  const [cargando, setCargando] = useState(false);
+  const [sacudir, setSacudir] = useState(false);
+
+  function dispararError(mensaje, nuevosErrores = {}) {
+    setErrores(nuevosErrores);
+    setSacudir(true);
+    setTimeout(() => setSacudir(false), 450);
+    mostrarToast(mensaje, 'alerta');
+  }
 
   function manejarLogin(e) {
     e.preventDefault();
     const nuevosErrores = {};
 
     if (!cedula.trim()) {
-      nuevosErrores.cedula = 'INGRESE SU NÚMERO DE CÉDULA';
+      nuevosErrores.cedula = 'Ingrese su número de cédula';
     } else if (cedula.trim().length !== 10) {
-      nuevosErrores.cedula = 'LA CÉDULA DEBE CONTENER EXACTAMENTE 10 DÍGITOS';
+      nuevosErrores.cedula = 'La cédula debe contener exactamente 10 dígitos';
     }
 
     if (!password.trim()) {
-      nuevosErrores.password = 'INGRESE SU CONTRASEÑA';
+      nuevosErrores.password = 'Ingrese su contraseña';
     }
 
     if (Object.keys(nuevosErrores).length > 0) {
-      setErrores(nuevosErrores);
-      mostrarToast('POR FAVOR COMPLETE LOS CAMPOS REQUERIDOS', 'alerta');
+      dispararError('Por favor complete los campos requeridos', nuevosErrores);
       return;
     }
 
     setErrores({});
-    const resultado = iniciarSesionConCredenciales(cedula, password);
-    if (!resultado.exito) {
-      mostrarToast(resultado.mensaje, 'alerta');
-    } else {
-      mostrarToast(`BIENVENIDO A CASOOK, ${resultado.usuario.nombre}`, 'exito');
-      navegar('/');
-    }
+    setCargando(true);
+
+    setTimeout(() => {
+      const resultado = iniciarSesionConCredenciales(cedula, password);
+      setCargando(false);
+      if (!resultado.exito) {
+        dispararError(resultado.mensaje, { general: resultado.mensaje });
+      } else {
+        mostrarToast(`Bienvenido a CASOOK, ${resultado.usuario.nombre}`, 'exito');
+        navegar('/');
+      }
+    }, 350);
   }
 
   function accesoRapido(u) {
     const res = iniciarSesionRapida(u);
     if (res.exito) {
-      mostrarToast(`ACCESO COMO ${u.nombre} (${etiquetasRol[u.rol]})`, 'exito');
+      mostrarToast(`Acceso directo como ${u.nombre} (${etiquetasRol[u.rol]})`, 'exito');
       navegar('/');
     } else {
       mostrarToast(res.mensaje, 'alerta');
@@ -66,85 +79,107 @@ export default function Ingreso() {
   }
 
   return (
-    <div className="ingreso">
-      {/* Banner dorado institucional centrado encima del formulario */}
-      <BannerUrbanizacion enLogin />
+    <div className="pantalla-login">
+      {/* Orbes ambientales decorativos luminosos flotantes */}
+      <div className="pantalla-login__orbe pantalla-login__orbe--1" aria-hidden="true" />
+      <div className="pantalla-login__orbe pantalla-login__orbe--2" aria-hidden="true" />
+      <div className="pantalla-login__orbe pantalla-login__orbe--3" aria-hidden="true" />
 
-      <div className="tarjeta ingreso__tarjeta">
-        <div style={{ textAlign: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.6rem' }}>
-            <LogoCasoOK size="lg" variante="oscura" />
-          </div>
+      <div
+        className={`pantalla-login__tarjeta ${sacudir ? 'animar-shake' : ''}`}
+        role="main"
+      >
+        {/* Banner institucional de la urbanización con degradado dorado */}
+        <BannerUrbanizacion enLogin />
 
-          {/* Exactamente las dos líneas requeridas */}
-          <p style={{ fontSize: '0.92rem', color: 'var(--color-primario)', fontWeight: 600, marginTop: '0.2rem' }}>
-            Cada caso bajo control.
-          </p>
-          <div className="texto-tenue" style={{ fontSize: '0.74rem', marginTop: '0.25rem', letterSpacing: '0.06em', fontWeight: 700 }}>
+        <div className="pantalla-login__marca">
+          <LogoCasoOK size="lg" variante="oscura" />
+          <h1 className="pantalla-login__lema">Cada caso bajo control.</h1>
+          <p className="pantalla-login__subtitulo">
             SISTEMA INTERNO DE GESTIÓN Y SEGUIMIENTO
-          </div>
+          </p>
         </div>
+
+        {errores.general && (
+          <div className="pantalla-login__error" role="alert">
+            <AlertCircle size={18} />
+            <span>{errores.general}</span>
+          </div>
+        )}
 
         <form className="formulario" onSubmit={manejarLogin} noValidate>
           <CampoEntrada
-            label="CÉDULA DE IDENTIDAD"
+            label="Cédula de Identidad"
             name="cedula"
+            icono={CreditCard}
             valor={cedula}
             onChange={(e) => {
               setCedula(soloNumeros(e.target.value));
-              if (errores.cedula) setErrores({ ...errores, cedula: '' });
+              if (errores.cedula || errores.general) setErrores({});
             }}
             error={errores.cedula}
             requerido
-            placeholder="EJ: 1710034065"
+            placeholder="Ej: 1710034065"
             maxlength={10}
+            autoComplete="username"
           />
 
           <CampoEntrada
-            label="CONTRASEÑA"
+            label="Contraseña"
             name="password"
             tipo="password"
+            icono={Lock}
             valor={password}
             onChange={(e) => {
               setPassword(e.target.value);
-              if (errores.password) setErrores({ ...errores, password: '' });
+              if (errores.password || errores.general) setErrores({});
             }}
             error={errores.password}
             requerido
             placeholder="••••••••"
+            ayuda="(Contraseña inicial = Número de cédula)"
+            autoComplete="current-password"
           />
-          <span className="texto-tenue" style={{ fontSize: '0.75rem', marginTop: '-0.3rem' }}>
-            (Contraseña inicial por defecto = Cédula de identidad)
-          </span>
 
-          <button type="submit" className="boton boton--primario boton--completo" style={{ marginTop: '0.5rem' }}>
-            <LogIn size={16} /> INGRESAR AL SISTEMA
+          <button
+            type="submit"
+            className={`boton boton--primario boton--completo pantalla-login__btn-acceso ${
+              cargando ? 'boton--cargando' : ''
+            }`}
+            disabled={cargando}
+          >
+            {cargando ? (
+              <>
+                <span className="spinner" aria-hidden="true" />
+                <span>Verificando credenciales...</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={18} />
+                <span>Ingresar al Sistema</span>
+              </>
+            )}
           </button>
         </form>
 
-        <div style={{ borderTop: '1px solid var(--color-borde)', paddingTop: '1rem', marginTop: '0.5rem' }}>
-          <div className="texto-tenue" style={{ fontWeight: 700, marginBottom: '0.5rem', textAlign: 'center', fontSize: '0.78rem' }}>
-            ACCESO RÁPIDO PARA PRUEBAS (ROLES DEL SISTEMA):
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.45rem' }}>
+        {/* Acceso rápido para pruebas de roles */}
+        <div className="pantalla-login__usuarios-demo">
+          <span className="pantalla-login__demo-titulo">
+            Acceso Rápido para Pruebas (Roles)
+          </span>
+          <div className="pantalla-login__demo-botones">
             {usuarios.map((u) => (
               <button
                 key={u.id}
                 type="button"
-                className="boton boton--contorno"
-                style={{
-                  fontSize: '0.75rem',
-                  padding: '0.5rem',
-                  textAlign: 'left',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  lineHeight: 1.25,
-                }}
+                className="pantalla-login__demo-btn"
                 onClick={() => accesoRapido(u)}
+                title={`Ingresar como ${u.nombre} ${u.apellido}`}
               >
-                <strong>{u.nombre} {u.apellido}</strong>
-                <span className="texto-tenue" style={{ fontSize: '0.7rem' }}>{etiquetasRol[u.rol]}</span>
+                <div>{u.nombre}</div>
+                <div style={{ color: 'var(--color-dorado-hover)', fontSize: '0.68rem' }}>
+                  {etiquetasRol[u.rol]}
+                </div>
               </button>
             ))}
           </div>

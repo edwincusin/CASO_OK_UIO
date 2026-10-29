@@ -1,7 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  User,
+  MapPin,
+  FileCheck2,
+  Upload,
+  FileText,
+  Save,
+  Info,
+} from 'lucide-react';
 import EncabezadoPagina from '../componentes/EncabezadoPagina';
-import VistaPreviaImagen from '../componentes/VistaPreviaImagen';
 import AutocompleteLote from '../componentes/AutocompleteLote';
 import CampoEntrada from '../componentes/CampoEntrada';
 import { useSesion } from '../contextos/ContextoSesion';
@@ -13,12 +21,12 @@ import { soloLetras, soloNumeros } from '../utilidades/validaciones';
 
 /**
  * CasoNuevo
- * Formulario de creación de casos para CASOOK:
- * - 3 selectores independientes: Etapa, Calle y Lote.
- * - 10 categorías oficiales con código, descripción de ayuda y sugerencia automática de área responsable.
- * - Registro con validación estricta y fechaHoraApertura ISO (America/Guayaquil).
+ * Formulario estructurado por secciones para registro de novedades comunitarias:
+ * 1. Reportante y Lote
+ * 2. Ubicación territorial independiente (Etapa, Calles)
+ * 3. Clasificación oficial y descripción
+ * 4. Evidencias con cargador accesible personalizado
  */
-
 export default function CasoNuevo() {
   const { usuario } = useSesion();
   const { crearCaso } = useCasos();
@@ -45,7 +53,6 @@ export default function CasoNuevo() {
   const [pdfInicial, setPdfInicial] = useState(null);
   const [errores, setErrores] = useState({});
 
-  // Objeto de la categoría actualmente seleccionada para mostrar su descripción
   const categoriaSeleccionadaObj = useMemo(() => {
     if (!form.categoria) return null;
     return categorias.find((c) => c.nombre === form.categoria) || null;
@@ -57,7 +64,12 @@ export default function CasoNuevo() {
     if (cat?.areaSugerida) return cat.areaSugerida;
 
     const texto = nombreCategoria.toUpperCase();
-    if (texto.startsWith('01') || texto.startsWith('04') || texto.startsWith('06') || texto.startsWith('07')) {
+    if (
+      texto.startsWith('01') ||
+      texto.startsWith('04') ||
+      texto.startsWith('06') ||
+      texto.startsWith('07')
+    ) {
       return 'MANTENIMIENTO';
     }
     if (texto.startsWith('02')) {
@@ -98,25 +110,27 @@ export default function CasoNuevo() {
     const nuevosErrores = {};
 
     if (!form.reportanteNombre.trim()) {
-      nuevosErrores.reportanteNombre = 'INGRESE LOS NOMBRES Y APELLIDOS DEL REPORTANTE (SOLO LETRAS)';
+      nuevosErrores.reportanteNombre =
+        'Ingrese los nombres y apellidos del reportante (solo letras y espacios)';
     }
     if (!form.reportanteLote.trim()) {
-      nuevosErrores.reportanteLote = 'DEBE BUSCAR Y SELECCIONAR EL LOTE DEL RESIDENTE (NUMERO.SUBLOTE)';
+      nuevosErrores.reportanteLote =
+        'Debe buscar y seleccionar el lote del residente (NUMERO.SUBLOTE)';
     }
     if (!form.categoria) {
-      nuevosErrores.categoria = 'SELECCIONE LA CATEGORÍA DE LA NOVEDAD';
+      nuevosErrores.categoria = 'Seleccione la categoría de la novedad';
     }
     if (!form.area) {
-      nuevosErrores.area = 'SELECCIONE EL ÁREA RESPONSABLE';
+      nuevosErrores.area = 'Seleccione el área responsable';
     }
     if (!form.etapa) {
-      nuevosErrores.etapa = 'SELECCIONE LA ETAPA DONDE OCURRIÓ LA NOVEDAD';
+      nuevosErrores.etapa = 'Seleccione la etapa donde ocurrió la novedad';
     }
     if (!form.callePrimaria) {
-      nuevosErrores.callePrimaria = 'SELECCIONE LA CALLE PRIMARIA';
+      nuevosErrores.callePrimaria = 'Seleccione la calle primaria';
     }
     if (!form.descripcion.trim()) {
-      nuevosErrores.descripcion = 'DETALLE LA DESCRIPCIÓN DE LA NOVEDAD';
+      nuevosErrores.descripcion = 'Detalle la descripción de la novedad';
     }
 
     setErrores(nuevosErrores);
@@ -127,7 +141,7 @@ export default function CasoNuevo() {
     e.preventDefault();
 
     if (!validarFormulario()) {
-      mostrarToast('POR FAVOR REVISE LOS CAMPOS OBLIGATORIOS MARCADOS EN ROJO', 'alerta');
+      mostrarToast('Por favor revise los campos requeridos en el formulario', 'alerta');
       return;
     }
 
@@ -140,260 +154,397 @@ export default function CasoNuevo() {
       usuario
     );
 
-    mostrarToast('NOVEDAD REGISTRADA EXITOSAMENTE EN CASOOK (EN PROCESO)', 'exito');
+    mostrarToast('Novedad registrada exitosamente en CASOOK', 'exito');
     navegar(`/casos/${casoCreado.id}`);
   }
 
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-5)' }}>
       <EncabezadoPagina
-        titulo="REGISTRO DE NOVEDAD"
-        subtitulo="CASOOK · Formulario oficial de reporte y despacho de casos"
+        titulo="Registro de Novedad"
+        subtitulo="Formulario oficial de reporte, categorización y despacho a territorio"
       />
 
-      <form className="tarjeta formulario" onSubmit={guardar} noValidate>
-        <h2>1. INFORMACIÓN DEL REPORTANTE</h2>
-        <div className="grid-2">
-          <CampoEntrada
-            label="NOMBRES Y APELLIDOS DEL REPORTANTE"
-            name="reportanteNombre"
-            requerido
-            valor={form.reportanteNombre}
-            onChange={manejarCambio}
-            error={errores.reportanteNombre}
-            placeholder="EJ: ALEJANDRA PAZMIÑO (LETRAS Y ESPACIOS)"
-          />
+      <form className="formulario" onSubmit={guardar} noValidate>
+        {/* SECCIÓN 1: REPORTANTE */}
+        <section className="formulario__seccion">
+          <h2 className="formulario__seccion-titulo">
+            <User size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>1. Información del Reportante</span>
+          </h2>
 
-          <div className="campo-grupo">
-            <label className="campo-label">
-              RELACIÓN CON LA URBANIZACIÓN <span className="campo-requerido">*</span>
-            </label>
-            <select
-              name="reportanteTipo"
-              className="campo-input"
-              value={form.reportanteTipo}
+          <div className="grid-formulario-2">
+            <CampoEntrada
+              label="Nombres y Apellidos del Reportante"
+              name="reportanteNombre"
+              requerido
+              valor={form.reportanteNombre}
               onChange={manejarCambio}
-            >
-              <option value="PROPIETARIO">PROPIETARIO</option>
-              <option value="INQUILINO">INQUILINO</option>
-              <option value="VISITA">VISITA</option>
-              <option value="PERSONAL INTERNO">PERSONAL INTERNO</option>
-            </select>
-          </div>
-
-          <AutocompleteLote
-            lotes={lotes}
-            valorSeleccionado={form.reportanteLote}
-            alSeleccionar={(loteNombre) => {
-              setForm((prev) => ({ ...prev, reportanteLote: loteNombre }));
-              if (errores.reportanteLote) setErrores((prev) => ({ ...prev, reportanteLote: '' }));
-            }}
-            error={errores.reportanteLote}
-          />
-
-          <CampoEntrada
-            label="CONTACTO TELEFÓNICO (SOLO DÍGITOS)"
-            tipo="tel"
-            valor={form.reportanteContacto}
-            onChange={(e) => {
-              setForm((prev) => ({ ...prev, reportanteContacto: soloNumeros(e.target.value) }));
-            }}
-            placeholder="EJ: 0994286523"
-            maxlength={10}
-          />
-        </div>
-
-        <h2>2. UBICACIÓN DE LA NOVEDAD (TRES SELECTORES INDEPENDIENTES)</h2>
-        <div className="grid-3">
-          <div className="campo-grupo">
-            <label className="campo-label">
-              ETAPA INDEPENDIENTE <span className="campo-requerido">*</span>
-            </label>
-            <select
-              name="etapa"
-              className={`campo-input ${errores.etapa ? 'campo-input--error' : ''}`}
-              value={form.etapa}
-              onChange={manejarCambio}
-            >
-              <option value="">SELECCIONE ETAPA...</option>
-              {etapas
-                .filter((e) => e.estado)
-                .map((e) => (
-                  <option key={e.id} value={e.nombre}>
-                    {e.nombre}
-                  </option>
-                ))}
-            </select>
-            {errores.etapa && <span className="campo-mensaje-error">{errores.etapa}</span>}
-          </div>
-
-          <div className="campo-grupo">
-            <label className="campo-label">
-              CALLE PRIMARIA <span className="campo-requerido">*</span>
-            </label>
-            <select
-              name="callePrimaria"
-              className={`campo-input ${errores.callePrimaria ? 'campo-input--error' : ''}`}
-              value={form.callePrimaria}
-              onChange={manejarCambio}
-            >
-              <option value="">SELECCIONE CALLE PRIMARIA...</option>
-              {calles
-                .filter((c) => c.estado)
-                .map((c) => (
-                  <option key={c.id} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-            </select>
-            {errores.callePrimaria && <span className="campo-mensaje-error">{errores.callePrimaria}</span>}
-          </div>
-
-          <div className="campo-grupo">
-            <label className="campo-label">CALLE SECUNDARIA (INTERSECCIÓN)</label>
-            <select
-              name="calleSecundaria"
-              className="campo-input"
-              value={form.calleSecundaria}
-              onChange={manejarCambio}
-            >
-              <option value="">SELECCIONE CALLE SECUNDARIA...</option>
-              {calles
-                .filter((c) => c.estado)
-                .map((c) => (
-                  <option key={c.id} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-            </select>
-          </div>
-        </div>
-
-        <CampoEntrada
-          label="REFERENCIA ESPECÍFICA DE UBICACIÓN"
-          valor={form.referenciaUbicacion}
-          onChange={(e) => setForm((prev) => ({ ...prev, referenciaUbicacion: aMayusculas(e.target.value) }))}
-          placeholder="EJ: FRENTE A LA GARITA PRINCIPAL, JUNTO A CANCHA DEPORTIVA"
-        />
-
-        <h2>3. DETALLE DE LA NOVEDAD Y CLASIFICACIÓN OFICIAL</h2>
-        <div className="grid-2">
-          <div className="campo-grupo">
-            <label className="campo-label">
-              CATEGORÍA OFICIAL <span className="campo-requerido">*</span>
-            </label>
-            <select
-              name="categoria"
-              className={`campo-input ${errores.categoria ? 'campo-input--error' : ''}`}
-              value={form.categoria}
-              onChange={manejarCambio}
-            >
-              <option value="">SELECCIONE CATEGORÍA...</option>
-              {categorias
-                .filter((c) => c.estado)
-                .map((c) => (
-                  <option key={c.id} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-            </select>
-            {/* Texto de ayuda descriptivo según la categoría seleccionada */}
-            {categoriaSeleccionadaObj?.descripcion && (
-              <span className="texto-tenue" style={{ fontSize: '0.78rem', marginTop: '0.2rem', color: '#166534', fontWeight: 500 }}>
-                ℹ {categoriaSeleccionadaObj.descripcion}
-              </span>
-            )}
-            {errores.categoria && <span className="campo-mensaje-error">{errores.categoria}</span>}
-          </div>
-
-          <div className="campo-grupo">
-            <label className="campo-label">
-              ÁREA RESPONSABLE ASIGNADA <span className="campo-requerido">*</span>
-            </label>
-            <select
-              name="area"
-              className={`campo-input ${errores.area ? 'campo-input--error' : ''}`}
-              value={form.area}
-              onChange={manejarCambio}
-            >
-              <option value="">SELECCIONE ÁREA...</option>
-              {areas
-                .filter((a) => a.estado)
-                .map((a) => (
-                  <option key={a.id} value={a.nombre}>
-                    {a.nombre}
-                  </option>
-                ))}
-            </select>
-            {errores.area && <span className="campo-mensaje-error">{errores.area}</span>}
-          </div>
-        </div>
-
-        <div className="campo-grupo">
-          <label className="campo-label">
-            DESCRIPCIÓN DE LA NOVEDAD <span className="campo-requerido">*</span>
-          </label>
-          <textarea
-            name="descripcion"
-            rows={3}
-            className={`campo-input ${errores.descripcion ? 'campo-input--error' : ''}`}
-            value={form.descripcion}
-            onChange={manejarCambio}
-            placeholder="DETALLE DE LA INCIDENCIA OCURRIDA..."
-          />
-          {errores.descripcion && <span className="campo-mensaje-error">{errores.descripcion}</span>}
-        </div>
-
-        <div className="campo-grupo">
-          <label className="campo-label">
-            PRIORIDAD DEL CASO <span className="campo-requerido">*</span>
-          </label>
-          <select name="prioridad" className="campo-input" value={form.prioridad} onChange={manejarCambio}>
-            <option value="BAJA">BAJA (PLAZO 5 DÍAS)</option>
-            <option value="MEDIA">MEDIA (PLAZO 3 DÍAS)</option>
-            <option value="ALTA">ALTA (PLAZO 2 DÍAS)</option>
-            <option value="URGENTE">URGENTE (PLAZO 1 DÍA)</option>
-          </select>
-        </div>
-
-        <h2>4. EVIDENCIAS FOTOGRÁFICAS Y DOCUMENTOS</h2>
-        <div className="grid-2">
-          <div className="campo-grupo">
-            <label className="campo-label">FOTO INICIAL DE APERTURA (OPCIONAL)</label>
-            <input
-              type="file"
-              accept="image/*"
-              className="campo-input"
-              onChange={(e) => setFotoInicial(e.target.files ? e.target.files[0] : null)}
+              error={errores.reportanteNombre}
+              placeholder="Ej: Alejandra Pazmiño"
+              ayuda="Solo se permiten letras y espacios"
             />
-            {fotoInicial && (
-              <VistaPreviaImagen
-                archivo={fotoInicial}
-                alEliminar={() => setFotoInicial(null)}
-                titulo="FOTO INICIAL"
-              />
-            )}
-          </div>
-          <div className="campo-grupo">
-            <label className="campo-label">DOCUMENTO OFICIO PDF (OPCIONAL)</label>
-            <input
-              type="file"
-              accept="application/pdf"
-              className="campo-input"
-              onChange={(e) => setPdfInicial(e.target.files ? e.target.files[0] : null)}
-            />
-            {pdfInicial && (
-              <span className="texto-tenue" style={{ marginTop: '0.4rem', display: 'inline-block' }}>
-                Archivo seleccionado: <strong>{pdfInicial.name}</strong>
-              </span>
-            )}
-          </div>
-        </div>
 
-        <button type="submit" className="boton boton--primario boton--completo" style={{ marginTop: '0.5rem' }}>
-          REGISTRAR CASO EN CASOOK
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="reportanteTipo">
+                <span>Relación con la Urbanización</span>
+                <span className="campo-requerido">*</span>
+              </label>
+              <select
+                id="reportanteTipo"
+                name="reportanteTipo"
+                className="campo-select"
+                value={form.reportanteTipo}
+                onChange={manejarCambio}
+              >
+                <option value="PROPIETARIO">Propietario</option>
+                <option value="INQUILINO">Inquilino</option>
+                <option value="VISITA">Visita</option>
+                <option value="PERSONAL INTERNO">Personal Interno</option>
+              </select>
+            </div>
+
+            <AutocompleteLote
+              lotes={lotes}
+              valorSeleccionado={form.reportanteLote}
+              alSeleccionar={(loteNombre) => {
+                setForm((prev) => ({ ...prev, reportanteLote: loteNombre }));
+                if (errores.reportanteLote)
+                  setErrores((prev) => ({ ...prev, reportanteLote: '' }));
+              }}
+              error={errores.reportanteLote}
+            />
+
+            <CampoEntrada
+              label="Contacto Telefónico"
+              tipo="tel"
+              valor={form.reportanteContacto}
+              onChange={(e) => {
+                setForm((prev) => ({
+                  ...prev,
+                  reportanteContacto: soloNumeros(e.target.value),
+                }));
+              }}
+              placeholder="Ej: 0994286523"
+              maxlength={10}
+              ayuda="10 dígitos para contacto directo o WhatsApp"
+            />
+          </div>
+        </section>
+
+        {/* SECCIÓN 2: UBICACIÓN TERRITORIAL */}
+        <section className="formulario__seccion">
+          <h2 className="formulario__seccion-titulo">
+            <MapPin size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>2. Ubicación de la Novedad</span>
+          </h2>
+
+          <div className="grid-formulario-3">
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="etapa">
+                <span>Etapa Independiente</span>
+                <span className="campo-requerido">*</span>
+              </label>
+              <select
+                id="etapa"
+                name="etapa"
+                className={`campo-select ${errores.etapa ? 'campo-select--error' : ''}`}
+                value={form.etapa}
+                onChange={manejarCambio}
+              >
+                <option value="">Seleccione etapa...</option>
+                {etapas
+                  .filter((e) => e.estado)
+                  .map((e) => (
+                    <option key={e.id} value={e.nombre}>
+                      {e.nombre}
+                    </option>
+                  ))}
+              </select>
+              {errores.etapa && <span className="campo-mensaje-error">{errores.etapa}</span>}
+            </div>
+
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="callePrimaria">
+                <span>Calle Primaria</span>
+                <span className="campo-requerido">*</span>
+              </label>
+              <select
+                id="callePrimaria"
+                name="callePrimaria"
+                className={`campo-select ${
+                  errores.callePrimaria ? 'campo-select--error' : ''
+                }`}
+                value={form.callePrimaria}
+                onChange={manejarCambio}
+              >
+                <option value="">Seleccione calle primaria...</option>
+                {calles
+                  .filter((c) => c.estado)
+                  .map((c) => (
+                    <option key={c.id} value={c.nombre}>
+                      {c.nombre}
+                    </option>
+                  ))}
+              </select>
+              {errores.callePrimaria && (
+                <span className="campo-mensaje-error">{errores.callePrimaria}</span>
+              )}
+            </div>
+
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="calleSecundaria">
+                <span>Calle Secundaria (Intersección)</span>
+              </label>
+              <select
+                id="calleSecundaria"
+                name="calleSecundaria"
+                className="campo-select"
+                value={form.calleSecundaria}
+                onChange={manejarCambio}
+              >
+                <option value="">Seleccione calle secundaria...</option>
+                {calles
+                  .filter((c) => c.estado)
+                  .map((c) => (
+                    <option key={c.id} value={c.nombre}>
+                      {c.nombre}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          </div>
+
+          <CampoEntrada
+            label="Referencia Específica de Ubicación"
+            valor={form.referenciaUbicacion}
+            onChange={(e) =>
+              setForm((prev) => ({
+                ...prev,
+                referenciaUbicacion: aMayusculas(e.target.value),
+              }))
+            }
+            placeholder="Ej: Frente a la garita 2, junto a la cancha deportiva"
+          />
+        </section>
+
+        {/* SECCIÓN 3: CLASIFICACIÓN Y DESCRIPCIÓN */}
+        <section className="formulario__seccion">
+          <h2 className="formulario__seccion-titulo">
+            <FileCheck2 size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>3. Detalle de la Novedad y Clasificación</span>
+          </h2>
+
+          <div className="grid-formulario-2">
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="categoria">
+                <span>Categoría Oficial</span>
+                <span className="campo-requerido">*</span>
+              </label>
+              <select
+                id="categoria"
+                name="categoria"
+                className={`campo-select ${
+                  errores.categoria ? 'campo-select--error' : ''
+                }`}
+                value={form.categoria}
+                onChange={manejarCambio}
+              >
+                <option value="">Seleccione categoría...</option>
+                {categorias
+                  .filter((c) => c.estado)
+                  .map((c) => (
+                    <option key={c.id} value={c.nombre}>
+                      {c.nombre}
+                    </option>
+                  ))}
+              </select>
+              {categoriaSeleccionadaObj?.descripcion && (
+                <span
+                  className="campo-ayuda"
+                  style={{
+                    color: 'var(--color-esmeralda-oscuro)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontWeight: 600,
+                  }}
+                >
+                  <Info size={13} />
+                  <span>{categoriaSeleccionadaObj.descripcion}</span>
+                </span>
+              )}
+              {errores.categoria && (
+                <span className="campo-mensaje-error">{errores.categoria}</span>
+              )}
+            </div>
+
+            <div className="campo-grupo">
+              <label className="campo-label" htmlFor="area">
+                <span>Área Responsable Asignada</span>
+                <span className="campo-requerido">*</span>
+              </label>
+              <select
+                id="area"
+                name="area"
+                className={`campo-select ${errores.area ? 'campo-select--error' : ''}`}
+                value={form.area}
+                onChange={manejarCambio}
+              >
+                <option value="">Seleccione área...</option>
+                {areas
+                  .filter((a) => a.estado)
+                  .map((a) => (
+                    <option key={a.id} value={a.nombre}>
+                      {a.nombre}
+                    </option>
+                  ))}
+              </select>
+              {errores.area && <span className="campo-mensaje-error">{errores.area}</span>}
+            </div>
+          </div>
+
+          <div className="campo-grupo">
+            <label className="campo-label" htmlFor="descripcion">
+              <span>Descripción de la Novedad</span>
+              <span className="campo-requerido">*</span>
+            </label>
+            <textarea
+              id="descripcion"
+              name="descripcion"
+              rows={4}
+              className={`campo-textarea ${
+                errores.descripcion ? 'campo-textarea--error' : ''
+              }`}
+              value={form.descripcion}
+              onChange={manejarCambio}
+              placeholder="Detalle los hechos observados, personas o vehículos involucrados, etc."
+            />
+            {errores.descripcion && (
+              <span className="campo-mensaje-error">{errores.descripcion}</span>
+            )}
+          </div>
+
+          <div className="campo-grupo">
+            <label className="campo-label" htmlFor="prioridad">
+              <span>Prioridad del Caso</span>
+              <span className="campo-requerido">*</span>
+            </label>
+            <select
+              id="prioridad"
+              name="prioridad"
+              className="campo-select"
+              value={form.prioridad}
+              onChange={manejarCambio}
+            >
+              <option value="BAJA">Baja (Plazo de atención: 5 días)</option>
+              <option value="MEDIA">Media (Plazo de atención: 3 días)</option>
+              <option value="ALTA">Alta (Plazo de atención: 2 días)</option>
+              <option value="URGENTE">Urgente (Plazo de atención: 1 día)</option>
+            </select>
+          </div>
+        </section>
+
+        {/* SECCIÓN 4: EVIDENCIAS CON CARGA ACCESIBLE */}
+        <section className="formulario__seccion">
+          <h2 className="formulario__seccion-titulo">
+            <Upload size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>4. Evidencias Fotográficas y Documentos</span>
+          </h2>
+
+          <div className="grid-formulario-2">
+            {/* Foto inicial */}
+            <div className="campo-grupo">
+              <span className="campo-label">Foto Inicial de Apertura (Opcional)</span>
+              <label className="zona-archivo" htmlFor="fotoInicialInput">
+                <input
+                  id="fotoInicialInput"
+                  type="file"
+                  accept="image/*"
+                  className="zona-archivo__input-nativo"
+                  onChange={(e) => setFotoInicial(e.target.files ? e.target.files[0] : null)}
+                />
+                <div className="zona-archivo__contenedor">
+                  <span className="zona-archivo__icono">
+                    <Upload size={24} />
+                  </span>
+                  <span className="zona-archivo__texto-principal">
+                    Seleccionar o arrastrar fotografía
+                  </span>
+                  <span className="zona-archivo__texto-secundario">
+                    JPG, PNG o WebP desde galería o cámara
+                  </span>
+                </div>
+              </label>
+
+              {fotoInicial && (
+                <div className="zona-archivo__vista-previa">
+                  <img
+                    src={URL.createObjectURL(fotoInicial)}
+                    alt="Vista previa inicial"
+                    className="zona-archivo__miniatura"
+                  />
+                  <span className="zona-archivo__nombre-archivo">{fotoInicial.name}</span>
+                  <button
+                    type="button"
+                    className="boton boton--sm boton--peligro"
+                    onClick={() => setFotoInicial(null)}
+                  >
+                    Quitar
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Oficio PDF */}
+            <div className="campo-grupo">
+              <span className="campo-label">Documento Oficio PDF (Opcional)</span>
+              <label className="zona-archivo" htmlFor="pdfInicialInput">
+                <input
+                  id="pdfInicialInput"
+                  type="file"
+                  accept="application/pdf"
+                  className="zona-archivo__input-nativo"
+                  onChange={(e) => setPdfInicial(e.target.files ? e.target.files[0] : null)}
+                />
+                <div className="zona-archivo__contenedor">
+                  <span className="zona-archivo__icono">
+                    <FileText size={24} />
+                  </span>
+                  <span className="zona-archivo__texto-principal">
+                    Seleccionar o arrastrar oficio PDF
+                  </span>
+                  <span className="zona-archivo__texto-secundario">
+                    Archivos en formato .PDF
+                  </span>
+                </div>
+              </label>
+
+              {pdfInicial && (
+                <div className="zona-archivo__vista-previa">
+                  <FileText size={24} style={{ color: 'var(--color-esmeralda-medio)' }} />
+                  <span className="zona-archivo__nombre-archivo">{pdfInicial.name}</span>
+                  <button
+                    type="button"
+                    className="boton boton--sm boton--peligro"
+                    onClick={() => setPdfInicial(null)}
+                  >
+                    Quitar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <button
+          type="submit"
+          className="boton boton--primario boton--grande boton--completo"
+        >
+          <Save size={20} />
+          <span>Registrar Novedad en CASOOK</span>
         </button>
       </form>
-    </>
+    </div>
   );
 }

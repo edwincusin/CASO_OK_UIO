@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { UserCheck, KeyRound, Shield, Check } from 'lucide-react';
+import { KeyRound, Check, ShieldCheck, User } from 'lucide-react';
 import EncabezadoPagina from '../componentes/EncabezadoPagina';
+import CampoEntrada from '../componentes/CampoEntrada';
 import { useSesion } from '../contextos/ContextoSesion';
 import { useToast } from '../contextos/ContextoToast';
 import { etiquetasRol } from '../datos/datosDemo';
 
+/**
+ * Perfil
+ * Vista del perfil de usuario y cambio seguro de contraseña.
+ */
 export default function Perfil() {
   const { usuario, cambiarPassword } = useSesion();
   const { mostrarToast } = useToast();
@@ -17,17 +22,17 @@ export default function Perfil() {
     e.preventDefault();
 
     if (!claveActual || !claveNueva || !claveConfirmar) {
-      mostrarToast('TODOS LOS CAMPOS DE CONTRASEÑA SON OBLIGATORIOS', 'alerta');
+      mostrarToast('Todos los campos de contraseña son requeridos', 'alerta');
       return;
     }
 
     if (claveNueva !== claveConfirmar) {
-      mostrarToast('LA NUEVA CONTRASEÑA Y SU CONFIRMACIÓN NO COINCIDEN', 'alerta');
+      mostrarToast('La nueva contraseña y su confirmación no coinciden', 'alerta');
       return;
     }
 
     if (claveNueva.length < 4) {
-      mostrarToast('LA CONTRASEÑA DEBE TENER AL MENOS 4 CARACTERES', 'alerta');
+      mostrarToast('La contraseña debe tener al menos 4 caracteres', 'alerta');
       return;
     }
 
@@ -43,82 +48,97 @@ export default function Perfil() {
   }
 
   return (
-    <>
-      <EncabezadoPagina titulo="MI PERFIL DE USUARIO" />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--espacio-5)' }}>
+      <EncabezadoPagina
+        titulo="Mi Perfil de Usuario"
+        subtitulo="Datos de cuenta institucional y seguridad de credenciales"
+      />
 
-      <section className="tarjeta datos" style={{ marginBottom: '1.5rem' }}>
-        <div>
-          <div className="datos__titulo">NOMBRES Y APELLIDOS</div>
-          <strong>{usuario?.nombre} {usuario?.apellido}</strong>
+      <section className="cuadricula-datos-2col">
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Nombres y Apellidos</span>
+          <div className="dato-item__valor">
+            {usuario?.nombre} {usuario?.apellido}
+          </div>
         </div>
-        <div>
-          <div className="datos__titulo">CÉDULA DE IDENTIDAD</div>
-          <span>{usuario?.cedula}</span>
+
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Cédula de Identidad</span>
+          <div
+            className="dato-item__valor texto-mono"
+            style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+          >
+            <ShieldCheck size={16} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>{usuario?.cedula}</span>
+          </div>
         </div>
-        <div>
-          <div className="datos__titulo">ROL EN EL SISTEMA</div>
-          <span style={{ color: 'var(--color-primario)', fontWeight: 700 }}>
-            {etiquetasRol[usuario?.rol] || usuario?.rol}
-          </span>
+
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Rol en el Sistema</span>
+          <div className="dato-item__valor">
+            <span className="badge badge--superusuario">
+              {etiquetasRol[usuario?.rol] || usuario?.rol}
+            </span>
+          </div>
         </div>
-        <div>
-          <div className="datos__titulo">ESTADO DE CUENTA</div>
-          <span className="insignia-estado-activo">ACTIVO Y HABILITADO</span>
+
+        <div className="dato-item">
+          <span className="dato-item__etiqueta">Estado de Cuenta</span>
+          <div className="dato-item__valor">
+            <span className="badge badge--activo">Activo y Habilitado</span>
+          </div>
         </div>
       </section>
 
       {/* MÓDULO CAMBIO DE CONTRASEÑA */}
-      <section className="tarjeta formulario">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <KeyRound size={20} />
-          <h2>CAMBIO DE CONTRASEÑA</h2>
-        </div>
+      <section className="formulario__seccion" style={{ maxWidth: '560px' }}>
+        <h2 className="formulario__seccion-titulo">
+          <KeyRound size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+          <span>Cambio de Contraseña</span>
+        </h2>
         <p className="texto-tenue">
-          REGLA DE SEGURIDAD: TODOS LOS USUARIOS TIENEN POR DEFECTO SU CÉDULA COMO CONTRASEÑA. SE RECOMIENDA CAMBIARLA POR UNA PERSONAL.
+          Por seguridad institucional se recomienda cambiar la contraseña inicial asignada.
         </p>
 
-        <form onSubmit={manejarCambioClave} className="formulario" style={{ maxWidth: '480px' }}>
-          <div className="campo">
-            <label htmlFor="claveActual">CONTRASEÑA ACTUAL *</label>
-            <input
-              id="claveActual"
-              type="password"
-              required
-              placeholder="••••••••"
-              value={claveActual}
-              onChange={(e) => setClaveActual(e.target.value)}
-            />
-          </div>
+        <form onSubmit={manejarCambioClave} className="formulario">
+          <CampoEntrada
+            label="Contraseña Actual"
+            tipo="password"
+            requerido
+            placeholder="••••••••"
+            valor={claveActual}
+            onChange={(e) => setClaveActual(e.target.value)}
+          />
 
-          <div className="campo">
-            <label htmlFor="claveNueva">NUEVA CONTRASEÑA *</label>
-            <input
-              id="claveNueva"
-              type="password"
-              required
-              placeholder="••••••••"
-              value={claveNueva}
-              onChange={(e) => setClaveNueva(e.target.value)}
-            />
-          </div>
+          <CampoEntrada
+            label="Nueva Contraseña"
+            tipo="password"
+            requerido
+            placeholder="••••••••"
+            valor={claveNueva}
+            onChange={(e) => setClaveNueva(e.target.value)}
+            ayuda="Mínimo 4 caracteres"
+          />
 
-          <div className="campo">
-            <label htmlFor="claveConfirmar">CONFIRMAR NUEVA CONTRASEÑA *</label>
-            <input
-              id="claveConfirmar"
-              type="password"
-              required
-              placeholder="••••••••"
-              value={claveConfirmar}
-              onChange={(e) => setClaveConfirmar(e.target.value)}
-            />
-          </div>
+          <CampoEntrada
+            label="Confirmar Nueva Contraseña"
+            tipo="password"
+            requerido
+            placeholder="••••••••"
+            valor={claveConfirmar}
+            onChange={(e) => setClaveConfirmar(e.target.value)}
+          />
 
-          <button type="submit" className="boton boton--primario">
-            <Check size={16} /> ACTUALIZAR MI CONTRASEÑA
+          <button
+            type="submit"
+            className="boton boton--primario"
+            style={{ alignSelf: 'flex-start' }}
+          >
+            <Check size={16} />
+            <span>Actualizar Contraseña</span>
           </button>
         </form>
       </section>
-    </>
+    </div>
   );
 }

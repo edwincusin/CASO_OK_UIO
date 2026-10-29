@@ -1,0 +1,184 @@
+/* ==========================================================================
+   TABLAS Y LISTAS RESPONSIVAS
+   Cabecera fija, hover suave y transformación en tarjetas apiladas en móvil
+   (<= 768px) mediante atributos data-label y pseudoelementos ::before.
+   ========================================================================== */
+
+.contenedor-tabla {
+  width: 100%;
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  box-shadow: var(--sombra-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabla-datos {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--tamano-sm);
+}
+
+.tabla-datos th {
+  background: #f8fafc;
+  color: var(--color-esmeralda-oscuro);
+  font-weight: 800;
+  font-size: var(--tamano-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--espacio-3) var(--espacio-4);
+  border-bottom: 2px solid var(--color-borde);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+}
+
+.tabla-datos td {
+  padding: var(--espacio-3) var(--espacio-4);
+  border-bottom: 1px solid var(--color-borde-suave);
+  color: var(--color-texto-principal);
+  vertical-align: middle;
+}
+
+.tabla-datos tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-datos tr:hover td {
+  background-color: #f8fafc;
+}
+
+/* Columna de código */
+.columna-codigo {
+  font-family: var(--fuente-mono);
+  font-weight: 800;
+  color: var(--color-esmeralda-oscuro);
+  white-space: nowrap;
+}
+
+/* Truncado controlado */
+.texto-truncado {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+/* ===== TRANSFORMACIÓN A TARJETAS EN MÓVIL (<= 768px) ===== */
+@media (max-width: 768px) {
+  .tabla-responsiva-apilada {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tabla-responsiva-apilada thead {
+    display: none; /* Ocultar cabecera tabular */
+  }
+
+  .tabla-responsiva-apilada tbody {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-3);
+  }
+
+  .tabla-responsiva-apilada tr {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: var(--radio-lg);
+    padding: var(--espacio-4);
+    box-shadow: var(--sombra-sm);
+    gap: var(--espacio-2);
+  }
+
+  .tabla-responsiva-apilada td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--color-borde-suave);
+    font-size: var(--tamano-sm);
+    text-align: right;
+  }
+
+  .tabla-responsiva-apilada td:last-child {
+    border-bottom: none;
+    padding-top: var(--espacio-2);
+  }
+
+  /* Inyección de la etiqueta del dato */
+  .tabla-responsiva-apilada td[data-label]::before {
+    content: attr(data-label);
+    font-size: var(--tamano-xs);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-texto-tenue);
+    text-align: left;
+    margin-right: var(--espacio-3);
+    flex-shrink: 0;
+  }
+
+  .tabla-responsiva-apilada .texto-truncado {
+    max-width: 180px;
+  }
+}
+
+/* ===== PAGINACIÓN ===== */
+.paginador {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-2);
+  flex-wrap: wrap;
+}
+
+.paginador__info {
+  font-size: var(--tamano-sm);
+  color: var(--color-texto-tenue);
+}
+
+.paginador__controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.paginador__boton {
+  min-width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radio-sm);
+  border: 1px solid var(--color-borde);
+  background: var(--color-superficie);
+  color: var(--color-texto-principal);
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--duracion-rapida) var(--curva-suave);
+}
+
+.paginador__boton:hover:not(:disabled) {
+  border-color: var(--color-esmeralda-medio);
+  background: var(--color-borde-suave);
+}
+
+.paginador__boton--activo {
+  background: var(--color-esmeralda-oscuro);
+  color: #ffffff;
+  border-color: var(--color-esmeralda-oscuro);
+}
+
+.paginador__boton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

@@ -1,0 +1,100 @@
+/* ==========================================================================
+   BASE & TIPOGRAFÍA
+   Estilos base del documento, jerarquía tipográfica y accesibilidad.
+   ========================================================================== */
+
+body {
+  font-family: var(--fuente-sistema);
+  font-size: var(--tamano-base);
+  color: var(--color-texto-principal);
+  background-color: var(--color-fondo);
+}
+
+/* ===== JERARQUÍA TIPOGRÁFICA ===== */
+h1, .titulo-pagina {
+  font-size: var(--tamano-titulo);
+  font-weight: 800;
+  color: var(--color-esmeralda-oscuro);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.encabezado-pagina {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--espacio-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--espacio-2);
+}
+
+
+h2, .titulo-seccion {
+  font-size: var(--tamano-subtitulo);
+  font-weight: 700;
+  color: var(--color-esmeralda-oscuro);
+  line-height: 1.3;
+}
+
+h3, .titulo-tarjeta {
+  font-size: var(--tamano-seccion);
+  font-weight: 700;
+  color: var(--color-texto-principal);
+  line-height: 1.4;
+}
+
+p {
+  color: var(--color-texto-secundario);
+  line-height: 1.6;
+  max-width: 75ch;
+}
+
+/* Textos auxiliares */
+.texto-destacado {
+  font-weight: 700;
+  color: var(--color-texto-principal);
+}
+
+.texto-secundario {
+  color: var(--color-texto-secundario);
+  font-size: var(--tamano-sm);
+}
+
+.texto-tenue {
+  color: var(--color-texto-tenue);
+  font-size: var(--tamano-sm);
+}
+
+.texto-mono {
+  font-family: var(--fuente-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Solo mayúsculas en micro-etiquetas con espaciado */
+.texto-kicker, .micro-etiqueta {
+  font-size: var(--tamano-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-texto-tenue);
+}
+
+/* ===== FOCO VISIBLE Y ACCESIBILIDAD ===== */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--sombra-foco);
+  border-radius: var(--radio-sm);
+}
+
+/* Ocultamiento accesible para lectores de pantalla */
+.sr-solamente {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

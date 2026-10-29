@@ -1,0 +1,82 @@
+/* ==========================================================================
+   PÁGINAS ADMINISTRATIVAS: REPORTES, USUARIOS, CATÁLOGOS, CONFIGURACIÓN
+   ========================================================================== */
+
+/* Reportes */
+.pagina-reportes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+}
+
+.reportes-panel-descarga {
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  padding: var(--espacio-5);
+  box-shadow: var(--sombra-sm);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  flex-wrap: wrap;
+}
+
+/* Usuarios */
+.pagina-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.usuarios-cabecera-acciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  flex-wrap: wrap;
+}
+
+/* Catálogos */
+.pagina-catalogos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+}
+
+.catalogos-pestanas {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  border-bottom: 2px solid var(--color-borde);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.catalogos-pestanas__btn {
+  padding: var(--espacio-3) var(--espacio-4);
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  color: var(--color-texto-tenue);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: all var(--duracion-rapida) var(--curva-suave);
+}
+
+.catalogos-pestanas__btn:hover {
+  color: var(--color-esmeralda-oscuro);
+}
+
+.catalogos-pestanas__btn--activa {
+  color: var(--color-esmeralda-oscuro);
+  border-bottom-color: var(--color-dorado);
+}
+
+/* Configuración */
+.pagina-configuracion {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-5);
+  max-width: 800px;
+}

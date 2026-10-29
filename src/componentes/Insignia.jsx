@@ -1,9 +1,21 @@
-// Un puntito de color con un texto. Sirve para estados y prioridades.
-export default function Insignia({ texto, color }) {
+/**
+ * Insignia / Badge
+ * Indicador visual con punto semántico y texto contrastado.
+ */
+export default function Insignia({ texto, color, variante }) {
+  const claseVariante = variante ? `badge--${variante}` : '';
+
   return (
-    <span className="insignia">
-      <span className="insignia__punto" style={{ background: color }} />
-      {texto}
+    <span
+      className={`badge ${claseVariante}`}
+      style={color && !variante ? { backgroundColor: `${color}15`, color: color } : undefined}
+    >
+      <span
+        className="badge__punto"
+        style={color && !variante ? { backgroundColor: color } : undefined}
+        aria-hidden="true"
+      />
+      <span>{texto}</span>
     </span>
   );
 }

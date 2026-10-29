@@ -12,6 +12,7 @@ import {
   FileText,
   Wrench,
   CheckCircle2,
+  Sparkles,
 } from 'lucide-react';
 import EncabezadoPagina from '../componentes/EncabezadoPagina';
 import TarjetaMetrica from '../componentes/TarjetaMetrica';
@@ -26,22 +27,18 @@ import { diasDeAtraso } from '../utilidades/fechas';
 
 /**
  * Inicio
- * Panel de control principal de CASOOK.
- * Muestra KPIs de casos activos (en proceso + por confirmar), casos vencidos, cerrados
- * y la distribución territorial de incidencias.
+ * Panel de control principal con KPIs animados, métricas territoriales,
+ * distribución por etapas y lista priorizada de seguimiento.
  */
-
 export default function Inicio() {
   const { casos } = useCasos();
   const { etapas, calles, lotes } = useCatalogos();
   const { usuario, usuarios } = useSesion();
   const { nombreUrbanizacion } = useConfiguracion();
 
-  // Cálculo de Métricas KPI: en_proceso, por_confirmar, cerrado
   const totalCasos = casos.length;
   const enProceso = casos.filter((c) => c.estado === 'en_proceso').length;
   const porConfirmar = casos.filter((c) => c.estado === 'por_confirmar').length;
-  // Regla oficial de negocio: casos activos = en_proceso + por_confirmar
   const activos = enProceso + porConfirmar;
   const vencidos = casos.filter(
     (c) => c.esVencido || (c.estado !== 'cerrado' && diasDeAtraso(c.proximoSeguimiento) > 0)
@@ -59,124 +56,247 @@ export default function Inicio() {
       return (a.proximoSeguimiento || '').localeCompare(b.proximoSeguimiento || '');
     });
 
-  const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'USUARIO';
+  const nombreUsuario = usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario';
   const esSuper = usuario?.rol === 'superusuario';
   const esMantenimiento = usuario?.rol === 'mantenimiento';
   const mostrarTerritorial = puedeVerMetricasTerritoriales(usuario);
 
   return (
-    <div className="dashboard" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div className="pagina-inicio">
       <EncabezadoPagina
-        titulo="PANEL DE CONTROL GENERAL"
-        subtitulo="CASOOK · Monitoreo y métricas operativas en tiempo real"
+        titulo="Panel de Control General"
+        subtitulo="Monitoreo operativo, indicadores de gestión y seguimiento territorial"
       >
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {esSuper && (
-            <Link to="/reportes" className="boton boton--contorno">
-              <FileText size={16} /> REPORTES PDF
+            <Link to="/reportes" className="boton boton--secundario">
+              <FileText size={16} />
+              <span>Reportes PDF</span>
             </Link>
           )}
           <Link to="/casos/nuevo" className="boton boton--primario">
-            <Plus size={18} /> NUEVA NOVEDAD
+            <Plus size={18} />
+            <span>Nueva Novedad</span>
           </Link>
         </div>
       </EncabezadoPagina>
 
+      {/* Saludo y rol activo */}
       <div
         className="tarjeta"
         style={{
-          background: esMantenimiento ? '#F0F9FF' : '#F8FBF8',
-          borderLeft: `4px solid ${esMantenimiento ? 'var(--color-resuelto)' : 'var(--color-secundario)'}`,
+          borderLeft: `4px solid ${
+            esMantenimiento ? 'var(--color-info)' : 'var(--color-esmeralda-medio)'
+          }`,
+          background: esMantenimiento ? '#f0f9ff' : '#f8fdfa',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          {esMantenimiento && <Wrench size={18} style={{ color: 'var(--color-resuelto)' }} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {esMantenimiento ? (
+            <Wrench size={20} style={{ color: 'var(--color-info)' }} />
+          ) : (
+            <Sparkles size={20} style={{ color: 'var(--color-esmeralda-medio)' }} />
+          )}
           <div>
-            <span className="texto-tenue">USUARIO ACTIVO:</span>{' '}
-            <strong>{nombreUsuario}</strong> ·{' '}
-            <span style={{ color: 'var(--color-secundario)', fontWeight: 800 }}>
+            <span className="texto-tenue">Sesión iniciada como:</span>{' '}
+            <strong style={{ color: 'var(--color-texto-principal)' }}>{nombreUsuario}</strong> ·{' '}
+            <span className="badge badge--activo">
               {etiquetasRol[usuario?.rol] || usuario?.rol}
             </span>
           </div>
         </div>
         {esMantenimiento && (
-          <p className="texto-tenue" style={{ marginTop: '0.25rem', color: '#0369a1', fontWeight: 600 }}>
+          <p
+            className="texto-tenue"
+            style={{ marginTop: '4px', color: '#0369a1', fontWeight: 600 }}
+          >
             Visualización y gestión restringida estrictamente a los casos asignados a la Dirección de Mantenimiento.
           </p>
         )}
       </div>
 
-      {/* KPIS PRINCIPALES: SIN ESTADO ABIERTO */}
-      <div>
-        <h2 style={{ marginBottom: '0.5rem' }}>
-          {esMantenimiento ? 'NOVEDADES ASIGNADAS A MANTENIMIENTO' : 'ESTADO GENERAL DE CASOS Y NOVEDADES'}
+      {/* KPIS PRINCIPALES */}
+      <section>
+        <h2 className="titulo-seccion" style={{ marginBottom: '12px' }}>
+          {esMantenimiento
+            ? 'Novedades Asignadas a Mantenimiento'
+            : 'Estado General de Casos y Novedades'}
         </h2>
         <div className="kpi-grid">
-          <TarjetaMetrica titulo="TOTAL CASOS" valor={totalCasos} icono={<Shield />} color="var(--color-primario)" />
-          <TarjetaMetrica titulo="CASOS ACTIVOS" valor={activos} icono={<Clock />} color="var(--color-info)" subtexto="EN PROCESO + POR CONFIRMAR" />
-          <TarjetaMetrica titulo="EN PROCESO" valor={enProceso} icono={<Clock />} color="var(--color-advertencia)" />
-          <TarjetaMetrica titulo="POR CONFIRMAR" valor={porConfirmar} icono={<CheckCircle2 />} color="var(--color-secundario)" />
-          <TarjetaMetrica titulo="CASOS VENCIDOS" valor={vencidos} icono={<AlertTriangle />} color="var(--color-alerta)" destaca />
-          <TarjetaMetrica titulo="CERRADOS" valor={cerrados} icono={<CheckCircle />} color="var(--color-resuelto)" />
+          <TarjetaMetrica
+            titulo="Total Casos"
+            valor={totalCasos}
+            icono={<Shield />}
+            color="var(--color-esmeralda-oscuro)"
+          />
+          <TarjetaMetrica
+            titulo="Casos Activos"
+            valor={activos}
+            icono={<Clock />}
+            color="var(--color-info)"
+            subtexto="En proceso + Por confirmar"
+          />
+          <TarjetaMetrica
+            titulo="En Proceso"
+            valor={enProceso}
+            icono={<Clock />}
+            color="var(--color-estado-proceso)"
+          />
+          <TarjetaMetrica
+            titulo="Por Confirmar"
+            valor={porConfirmar}
+            icono={<CheckCircle2 />}
+            color="var(--color-estado-confirmar)"
+          />
+          <TarjetaMetrica
+            titulo="Casos Vencidos"
+            valor={vencidos}
+            icono={<AlertTriangle />}
+            color="var(--color-peligro)"
+            destaca={vencidos > 0}
+          />
+          <TarjetaMetrica
+            titulo="Cerrados"
+            valor={cerrados}
+            icono={<CheckCircle />}
+            color="var(--color-exito)"
+          />
         </div>
-      </div>
+      </section>
 
-      {/* KPIS DE INVENTARIO Y CATÁLOGOS — EXCLUSIVO SUPERUSUARIO */}
+      {/* KPIS TERRITORIALES (SUPERUSUARIO) */}
       {mostrarTerritorial && (
-        <>
-          <div>
-            <h2 style={{ marginBottom: '0.5rem' }}>MÉTRICAS TERRITORIALES Y CATÁLOGOS</h2>
-            <div className="kpi-grid">
-              <TarjetaMetrica titulo="USUARIOS" valor={usuarios.length} icono={<Users />} color="#11321d" subtexto="HABILITADOS" />
-              <TarjetaMetrica titulo="ETAPAS" valor={etapas.length} icono={<Layers />} color="#11321d" subtexto="CATÁLOGO ACTIVO" />
-              <TarjetaMetrica titulo="CALLES" valor={calles.length} icono={<MapPin />} color="#11321d" subtexto="VÍAS REGISTRADAS" />
-              <TarjetaMetrica titulo="LOTES" valor={lotes.length} icono={<FolderTree />} color="#11321d" subtexto="CÓDIGOS NUMERO.SUBLOTE" />
-            </div>
+        <section>
+          <h2 className="titulo-seccion" style={{ marginBottom: '12px' }}>
+            Métricas Territoriales y Catálogos
+          </h2>
+          <div className="kpi-grid">
+            <TarjetaMetrica
+              titulo="Usuarios"
+              valor={usuarios.length}
+              icono={<Users />}
+              color="var(--color-esmeralda-oscuro)"
+              subtexto="Habilitados"
+            />
+            <TarjetaMetrica
+              titulo="Etapas"
+              valor={etapas.length}
+              icono={<Layers />}
+              color="var(--color-esmeralda-oscuro)"
+              subtexto="Catálogo activo"
+            />
+            <TarjetaMetrica
+              titulo="Calles"
+              valor={calles.length}
+              icono={<MapPin />}
+              color="var(--color-esmeralda-oscuro)"
+              subtexto="Vías registradas"
+            />
+            <TarjetaMetrica
+              titulo="Lotes"
+              valor={lotes.length}
+              icono={<FolderTree />}
+              color="var(--color-esmeralda-oscuro)"
+              subtexto="Códigos NUMERO.SUBLOTE"
+            />
           </div>
 
           {/* DISTRIBUCIÓN POR ETAPAS */}
-          <div className="tarjeta seccion-etapas">
-            <h3>DISTRIBUCIÓN DE INCIDENCIAS POR ETAPA</h3>
+          <div className="tarjeta" style={{ marginTop: '16px' }}>
+            <h3 className="tarjeta__titulo">
+              <Layers size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+              <span>Distribución de Incidencias por Etapa</span>
+            </h3>
             <p className="texto-tenue">
               Densidad territorial de novedades reportadas en {nombreUrbanizacion || 'la urbanización'}.
             </p>
-            <div className="barras-etapas">
+
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                marginTop: '12px',
+              }}
+            >
               {etapas.map((etapa) => {
                 const conteo = casos.filter((c) => c.etapa === etapa.nombre).length;
                 const porcentaje = totalCasos > 0 ? ((conteo / totalCasos) * 100).toFixed(1) : 0;
                 return (
-                  <div key={etapa.id} className="barra-etapa-item">
-                    <div className="barra-etapa-item__info">
-                      <strong>{etapa.nombre}</strong>
-                      <span>
-                        <strong>{conteo} CASOS</strong> ({porcentaje}%)
+                  <div key={etapa.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        fontSize: '0.82rem',
+                      }}
+                    >
+                      <strong style={{ color: 'var(--color-texto-principal)' }}>{etapa.nombre}</strong>
+                      <span className="texto-mono">
+                        <strong>{conteo} casos</strong> ({porcentaje}%)
                       </span>
                     </div>
-                    <div className="barra-etapa-item__progress-bg">
-                      <div className="barra-etapa-item__progress-fill" style={{ width: `${porcentaje}%` }} />
+                    <div
+                      style={{
+                        height: '8px',
+                        background: '#e2e8f0',
+                        borderRadius: '999px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${porcentaje}%`,
+                          background: 'linear-gradient(90deg, #047857 0%, #10b981 100%)',
+                          borderRadius: '999px',
+                          transition: 'width 800ms cubic-bezier(0.16, 1, 0.3, 1)',
+                        }}
+                      />
                     </div>
                   </div>
                 );
               })}
             </div>
           </div>
-        </>
+        </section>
       )}
 
-      {/* PENDIENTES DE SEGUIMIENTO */}
+      {/* CASOS PENDIENTES DE SEGUIMIENTO */}
       <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-          <h2>PENDIENTES DE SEGUIMIENTO (VENCIDOS PRIMERO)</h2>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px',
+          }}
+        >
+          <h2 className="titulo-seccion">Pendientes de Seguimiento (Vencidos Primero)</h2>
           <span className="texto-tenue">{pendientesSeguimiento.length} activos</span>
         </div>
-        <div className="lista">
-          {pendientesSeguimiento.length === 0 && (
-            <p className="vacio">NO EXISTEN CASOS PENDIENTES DE ATENCIÓN 🎉</p>
-          )}
-          {pendientesSeguimiento.map((caso) => (
-            <TarjetaCaso key={caso.id} caso={caso} />
-          ))}
-        </div>
+
+        {pendientesSeguimiento.length === 0 ? (
+          <div className="tarjeta estado-vacio">
+            <CheckCircle size={36} style={{ color: 'var(--color-exito)' }} />
+            <h3 className="estado-vacio__titulo">No existen casos pendientes 🎉</h3>
+            <p className="estado-vacio__texto">
+              Todas las incidencias comunitarias han sido resueltas y confirmadas.
+            </p>
+          </div>
+        ) : (
+          <div className="casos-cuadricula-tarjetas">
+            {pendientesSeguimiento.slice(0, 6).map((caso, index) => (
+              <div
+                key={caso.id}
+                className="animar-escalonado"
+                style={{ '--i': index }}
+              >
+                <TarjetaCaso caso={caso} />
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

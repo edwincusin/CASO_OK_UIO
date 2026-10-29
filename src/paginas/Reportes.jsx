@@ -17,9 +17,8 @@ import { formatearFecha, formatearFechaHora, obtenerTiempoResolucion } from '../
 /**
  * Reportes
  * Módulo de auditoría general y exportación oficial de reportes en PDF con jsPDF y jspdf-autotable.
- * Incluye columnas de apertura, cierre, tiempo de resolución, resumen inferior y branding CASOOK.
+ * Filtros por creador, fechas, etapa, categoría y área, con vista previa y paginación a 20 registros.
  */
-
 export default function Reportes() {
   const { usuario, usuarios } = useSesion();
   const { todosLosCasos } = useCasos();
@@ -50,7 +49,8 @@ export default function Reportes() {
       if (filtros.categoria && c.categoria !== filtros.categoria) return false;
       if (filtros.area && c.area !== filtros.area) return false;
       if (filtros.etapa && c.etapa !== filtros.etapa) return false;
-      if (filtros.usuarioCreadorId && c.registradoPor !== Number(filtros.usuarioCreadorId)) return false;
+      if (filtros.usuarioCreadorId && c.registradoPor !== Number(filtros.usuarioCreadorId))
+        return false;
       return true;
     });
   }, [todosLosCasos, filtros]);
@@ -64,12 +64,12 @@ export default function Reportes() {
 
   function descargarPDF() {
     if (casosFiltrados.length === 0) {
-      mostrarToast('NO HAY CASOS PARA EXPORTAR CON LOS FILTROS ACTUALES', 'alerta');
+      mostrarToast('No hay casos para exportar con los filtros actuales', 'alerta');
       return;
     }
 
     exportarCasosAPDF(casosFiltrados, filtros, usuarios, nombreUrbanizacion);
-    mostrarToast('REPORTE GENERAL PDF GENERADO EXITOSAMENTE', 'exito');
+    mostrarToast('Reporte general PDF generado exitosamente', 'exito');
   }
 
   function limpiarFiltros() {
@@ -85,27 +85,31 @@ export default function Reportes() {
   }
 
   return (
-    <>
+    <div className="pagina-reportes">
       <EncabezadoPagina
-        titulo="REPORTES Y AUDITORÍA GENERAL"
-        subtitulo="CASOOK · Filtros por creador, tiempos de resolución y exportación oficial en PDF"
+        titulo="Reportes y Auditoría General"
+        subtitulo="Filtros de fiscalización, tiempos de atención y exportación oficial en PDF"
       >
-        <button className="boton boton--primario" onClick={descargarPDF}>
-          <Download size={18} /> EXPORTAR REPORTE PDF
+        <button type="button" className="boton boton--primario" onClick={descargarPDF}>
+          <Download size={18} />
+          <span>Exportar Reporte PDF</span>
         </button>
       </EncabezadoPagina>
 
       {/* PANEL DE FILTROS AVANZADOS */}
-      <section className="tarjeta formulario">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          <Filter size={18} style={{ color: 'var(--color-primario)' }} />
-          <h2>FILTROS DE AUDITORÍA Y BÚSQUEDA</h2>
-        </div>
+      <section className="formulario__seccion">
+        <h2 className="formulario__seccion-titulo">
+          <Filter size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+          <span>Filtros de Auditoría y Búsqueda</span>
+        </h2>
 
-        <div className="grid-3">
+        <div className="grid-formulario-3">
           <div className="campo-grupo">
-            <label className="campo-label">FECHA DESDE</label>
+            <label className="campo-label" htmlFor="fechaInicio">
+              Fecha Desde
+            </label>
             <input
+              id="fechaInicio"
               type="date"
               className="campo-input"
               value={filtros.fechaInicio}
@@ -115,9 +119,13 @@ export default function Reportes() {
               }}
             />
           </div>
+
           <div className="campo-grupo">
-            <label className="campo-label">FECHA HASTA</label>
+            <label className="campo-label" htmlFor="fechaFin">
+              Fecha Hasta
+            </label>
             <input
+              id="fechaFin"
               type="date"
               className="campo-input"
               value={filtros.fechaFin}
@@ -127,17 +135,21 @@ export default function Reportes() {
               }}
             />
           </div>
+
           <div className="campo-grupo">
-            <label className="campo-label">USUARIO QUE REGISTRÓ EL CASO</label>
+            <label className="campo-label" htmlFor="usuarioCreadorId">
+              Usuario que Registró el Caso
+            </label>
             <select
-              className="campo-input"
+              id="usuarioCreadorId"
+              className="campo-select"
               value={filtros.usuarioCreadorId}
               onChange={(e) => {
                 setFiltros({ ...filtros, usuarioCreadorId: e.target.value });
                 setPaginaActual(1);
               }}
             >
-              <option value="">TODOS LOS USUARIOS</option>
+              <option value="">Todos los usuarios</option>
               {usuarios.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.nombre} {u.apellido} ({u.cedula})
@@ -147,18 +159,21 @@ export default function Reportes() {
           </div>
         </div>
 
-        <div className="grid-3">
+        <div className="grid-formulario-3">
           <div className="campo-grupo">
-            <label className="campo-label">ETAPA</label>
+            <label className="campo-label" htmlFor="etapaFiltro">
+              Etapa
+            </label>
             <select
-              className="campo-input"
+              id="etapaFiltro"
+              className="campo-select"
               value={filtros.etapa}
               onChange={(e) => {
                 setFiltros({ ...filtros, etapa: e.target.value });
                 setPaginaActual(1);
               }}
             >
-              <option value="">TODAS LAS ETAPAS</option>
+              <option value="">Todas las etapas</option>
               {etapas.map((et) => (
                 <option key={et.id} value={et.nombre}>
                   {et.nombre}
@@ -168,16 +183,19 @@ export default function Reportes() {
           </div>
 
           <div className="campo-grupo">
-            <label className="campo-label">CATEGORÍA</label>
+            <label className="campo-label" htmlFor="catFiltro">
+              Categoría
+            </label>
             <select
-              className="campo-input"
+              id="catFiltro"
+              className="campo-select"
               value={filtros.categoria}
               onChange={(e) => {
                 setFiltros({ ...filtros, categoria: e.target.value });
                 setPaginaActual(1);
               }}
             >
-              <option value="">TODAS LAS CATEGORÍAS</option>
+              <option value="">Todas las categorías</option>
               {categorias.map((c) => (
                 <option key={c.id} value={c.nombre}>
                   {c.nombre}
@@ -187,16 +205,19 @@ export default function Reportes() {
           </div>
 
           <div className="campo-grupo">
-            <label className="campo-label">ÁREA RESPONSABLE</label>
+            <label className="campo-label" htmlFor="areaFiltro">
+              Área Responsable
+            </label>
             <select
-              className="campo-input"
+              id="areaFiltro"
+              className="campo-select"
               value={filtros.area}
               onChange={(e) => {
                 setFiltros({ ...filtros, area: e.target.value });
                 setPaginaActual(1);
               }}
             >
-              <option value="">TODAS LAS ÁREAS</option>
+              <option value="">Todas las áreas</option>
               {areas.map((a) => (
                 <option key={a.id} value={a.nombre}>
                   {a.nombre}
@@ -206,46 +227,82 @@ export default function Reportes() {
           </div>
         </div>
 
-        <div className="acciones" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingTop: '8px',
+            borderTop: '1px solid var(--color-borde-suave)',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
           <span className="texto-tenue">
-            CASOS COINCIDENTES: <strong>{casosFiltrados.length}</strong> DE {todosLosCasos?.length || 0}
+            Casos coincidentes:{' '}
+            <strong className="texto-mono" style={{ color: 'var(--color-texto-principal)' }}>
+              {casosFiltrados.length}
+            </strong>{' '}
+            de {todosLosCasos?.length || 0}
           </span>
-          <button type="button" className="boton boton--contorno" onClick={limpiarFiltros}>
-            <RefreshCw size={14} /> RESTABLECER FILTROS
+          <button
+            type="button"
+            className="boton boton--sm boton--secundario"
+            onClick={limpiarFiltros}
+          >
+            <RefreshCw size={14} />
+            <span>Restablecer Filtros</span>
           </button>
         </div>
       </section>
 
       {/* PREVISUALIZACIÓN DE REGISTROS A EXPORTAR */}
       <section className="tarjeta">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-          <h2>PREVISUALIZACIÓN DE REGISTROS A EXPORTAR</h2>
-          <button className="boton boton--secundario" onClick={descargarPDF}>
-            <FileText size={16} /> DESCARGAR PDF ({casosFiltrados.length})
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '12px',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          <h2 className="tarjeta__titulo">
+            <FileText size={18} style={{ color: 'var(--color-esmeralda-medio)' }} />
+            <span>Previsualización de Registros</span>
+          </h2>
+          <button
+            type="button"
+            className="boton boton--sm boton--secundario"
+            onClick={descargarPDF}
+          >
+            <Download size={14} />
+            <span>Descargar PDF ({casosFiltrados.length})</span>
           </button>
         </div>
 
-        <div className="tabla-contenedor">
-          <table className="tabla-datos">
+        <div className="contenedor-tabla">
+          <table className="tabla-datos tabla-responsiva-apilada">
             <thead>
               <tr>
-                <th>CÓDIGO</th>
-                <th>APERTURA</th>
-                <th>TIEMPO</th>
-                <th>REPORTANTE</th>
-                <th>LOTE</th>
-                <th>ETAPA</th>
-                <th>CALLE PPAL.</th>
-                <th>ÁREA</th>
-                <th>ESTADO</th>
-                <th>REGISTRADO POR</th>
+                <th>Código</th>
+                <th>Apertura</th>
+                <th>Tiempo</th>
+                <th>Reportante</th>
+                <th>Lote</th>
+                <th>Etapa</th>
+                <th>Calle Ppal.</th>
+                <th>Área</th>
+                <th>Estado</th>
+                <th>Registrado Por</th>
               </tr>
             </thead>
             <tbody>
               {casosFiltrados.length === 0 ? (
                 <tr>
                   <td colSpan={10} style={{ textAlign: 'center', padding: '2rem' }}>
-                    NO EXISTEN REGISTROS CON EL CRITERIO DE BÚSQUEDA
+                    No existen registros con el criterio de búsqueda seleccionado.
                   </td>
                 </tr>
               ) : (
@@ -258,25 +315,34 @@ export default function Reportes() {
 
                   return (
                     <tr key={c.id}>
-                      <td><strong>{c.codigo}</strong></td>
-                      <td>{fechaApertura}</td>
-                      <td>
-                        <span className="texto-tenue">{duracion}</span>
+                      <td data-label="Código" className="columna-codigo">
+                        {c.codigo}
                       </td>
-                      <td>{c.reportanteNombre}</td>
-                      <td>{c.reportanteLote || c.lote || '-'}</td>
-                      <td>{c.etapa || '-'}</td>
-                      <td>{c.callePrimaria || c.calle || '-'}</td>
-                      <td>{c.area}</td>
-                      <td>
+                      <td data-label="Apertura" className="texto-mono">
+                        {fechaApertura}
+                      </td>
+                      <td data-label="Tiempo" className="texto-mono">
+                        {duracion}
+                      </td>
+                      <td data-label="Reportante">{c.reportanteNombre}</td>
+                      <td data-label="Lote" className="texto-mono">
+                        {c.reportanteLote || c.lote || '—'}
+                      </td>
+                      <td data-label="Etapa">{c.etapa || '—'}</td>
+                      <td data-label="Calle Ppal.">{c.callePrimaria || c.calle || '—'}</td>
+                      <td data-label="Área">{c.area}</td>
+                      <td data-label="Estado">
                         <Insignia
                           texto={estados[c.estado]?.nombre || c.estado}
-                          color={estados[c.estado]?.color || '#999'}
+                          variante={c.estado}
+                          color={estados[c.estado]?.color}
                         />
                       </td>
-                      <td>
+                      <td data-label="Registrado Por">
                         <span className="texto-tenue">
-                          {creador ? `${creador.nombre} ${creador.apellido}` : `ID ${c.registradoPor}`}
+                          {creador
+                            ? `${creador.nombre} ${creador.apellido}`
+                            : `ID ${c.registradoPor}`}
                         </span>
                       </td>
                     </tr>
@@ -287,7 +353,6 @@ export default function Reportes() {
           </table>
         </div>
 
-        {/* PAGINACIÓN A 20 REGISTROS */}
         <Paginador
           paginaActual={paginaActual}
           totalPaginas={totalPaginas}
@@ -296,6 +361,6 @@ export default function Reportes() {
           porPagina={porPagina}
         />
       </section>
-    </>
+    </div>
   );
 }
